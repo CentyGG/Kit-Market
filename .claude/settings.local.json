@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew shared:compileKotlinAndroid)",
+      "Bash(./gradlew shared:compileDebugKotlinAndroid)",
+      "Bash(./gradlew shared:compileDebugKotlinAndroid --no-configuration-cache)",
+      "Bash(./gradlew androidApp:assembleDebug --no-configuration-cache)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(./gradlew assembleDebug --warning-mode all)",
+      "Bash(adb devices:*)",
+      "Bash($ADB devices:*)"
+    ]
+  }
+}

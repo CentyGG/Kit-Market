@@ -13,11 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import cafe.adriel.voyager.transitions.SlideTransition
 import com.example.kit_market.presentation.screen.cart.CartScreen
 import com.example.kit_market.presentation.screen.products.ProductsScreen
 import com.example.kit_market.presentation.screen.profile.ProfileScreen
@@ -81,7 +83,9 @@ object HomeTab : Tab {
 
     @Composable
     override fun Content() {
-        ProductsScreen().Content()
+        Navigator(ProductsScreen()) { navigator ->
+            SlideTransition(navigator)
+        }
     }
 }
 
@@ -95,7 +99,9 @@ object CartTab : Tab {
 
     @Composable
     override fun Content() {
-        CartScreen().Content()
+        Navigator(CartScreen()) { navigator ->
+            SlideTransition(navigator)
+        }
     }
 }
 
@@ -109,6 +115,8 @@ object ProfileTab : Tab {
 
     @Composable
     override fun Content() {
-        ProfileScreen().Content()
+        Navigator(ProfileScreen()) { navigator ->
+            SlideTransition(navigator)
+        }
     }
 }

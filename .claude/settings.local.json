@@ -8,7 +8,22 @@
       "Bash(./gradlew assembleDebug)",
       "Bash(./gradlew assembleDebug --warning-mode all)",
       "Bash(adb devices:*)",
-      "Bash($ADB devices:*)"
+      "Bash($ADB devices:*)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/emulator/emulator:*)",
+      "Bash(./gradlew installDebug)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/platform-tools/adb.exe devices:*)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/platform-tools/adb.exe shell:*)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/platform-tools/adb.exe emu:*)",
+      "Bash(\"C:/Users/smaka/AppData/Local/Android/Sdk/emulator/emulator\" -avd Medium_Phone_API_35 -no-snapshot-load -gpu swiftshader_indirect)",
+      "Bash([ -f \"$SDKMANAGER\" ])",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/cmdline-tools/latest/bin/sdkmanager.bat --list_installed)",
+      "Bash($ADB:*)",
+      "Bash(./gradlew installDebug -Pandroid.injected.build.api=35)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 emu kill)",
+      "Bash(C:/Users/smaka/AppData/Local/Android/Sdk/platform-tools/adb.exe logcat:*)",
+      "Bash(./gradlew --stop)",
+      "Bash(gradle --stop)",
+      "Bash(./gradlew androidApp:assembleDebug)"
     ]
   }
 }

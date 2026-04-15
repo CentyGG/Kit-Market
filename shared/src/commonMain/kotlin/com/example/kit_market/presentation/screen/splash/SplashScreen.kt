@@ -45,7 +45,7 @@ class SplashScreen : Screen {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(KitBlue),
+                .background(KitWhite),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -56,12 +56,12 @@ class SplashScreen : Screen {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Кит-Маркет",
-                    color = KitWhite,
+                    color = KitBlue,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                CircularProgressIndicator(color = KitWhite)
+                CircularProgressIndicator(color = KitBlue)
             }
         }
     }

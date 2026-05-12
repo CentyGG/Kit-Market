@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 kotlin {
@@ -38,10 +39,10 @@ kotlin {
             implementation(compose.components.resources)
 
             implementation(libs.voyager.navigator)
-            implementation(libs.voyager.screenmodel)
             implementation(libs.voyager.tab.navigator)
             implementation(libs.voyager.transitions)
-            implementation(libs.voyager.koin)
+
+            implementation(libs.lifecycle.viewmodel)
 
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
@@ -51,12 +52,22 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.auth)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }

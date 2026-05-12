@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.presentation.navigation.MainScreen
@@ -29,7 +29,7 @@ class AuthScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinScreenModel<AuthScreenModel>()
+        val screenModel = koinInject<AuthViewModel>()
         val state by screenModel.state.collectAsState()
         val navigateToMain by screenModel.navigateToMain.collectAsState()
 
@@ -94,17 +94,35 @@ private fun PhoneInput(
     onPhoneChange: (String) -> Unit,
     onSubmit: () -> Unit
 ) {
-    OutlinedTextField(
-        value = phone,
-        onValueChange = onPhoneChange,
-        label = { Text("Номер телефона") },
-        placeholder = { Text("+7 (999) 123-45-67") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        singleLine = true,
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        isError = error != null
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = "+7",
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            modifier = Modifier.width(64.dp),
+            shape = RoundedCornerShape(12.dp),
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { if (it.length <= 10 && it.all { c -> c.isDigit() }) onPhoneChange(it) },
+            label = { Text("Номер телефона") },
+            placeholder = { Text("") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(12.dp),
+            isError = error != null
+        )
+    }
     if (error != null) {
         Text(
             text = error,
@@ -121,7 +139,7 @@ private fun PhoneInput(
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
-        enabled = !isLoading
+        enabled = !isLoading && phone.length == 10
     ) {
         if (isLoading) {
             CircularProgressIndicator(color = KitWhite, modifier = Modifier.size(24.dp))
@@ -141,7 +159,7 @@ private fun CodeInput(
     onSubmit: () -> Unit
 ) {
     Text(
-        text = "Код отправлен на номер\n$phone",
+        text = "Код отправлен на номер\n+7$phone",
         fontSize = 14.sp,
         color = KitTextSecondary,
         textAlign = TextAlign.Center
@@ -149,9 +167,9 @@ private fun CodeInput(
     Spacer(modifier = Modifier.height(16.dp))
     OutlinedTextField(
         value = code,
-        onValueChange = { if (it.length <= 6) onCodeChange(it) },
+        onValueChange = { if (it.length <= 4) onCodeChange(it) },
         label = { Text("Код из СМС") },
-        placeholder = { Text("000000") },
+        placeholder = { Text("0000") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),

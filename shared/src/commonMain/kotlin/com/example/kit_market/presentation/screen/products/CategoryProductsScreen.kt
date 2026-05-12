@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 data class CategoryProductsScreen(
-    val categoryId: Long,
     val categoryName: String
 ) : Screen {
 
@@ -51,8 +50,8 @@ data class CategoryProductsScreen(
         var products by remember { mutableStateOf<List<Product>>(emptyList()) }
         var cartQuantities by remember { mutableStateOf<Map<Long, Int>>(emptyMap()) }
 
-        LaunchedEffect(categoryId) {
-            products = getProductsByCategoryUseCase(categoryId)
+        LaunchedEffect(categoryName) {
+            products = getProductsByCategoryUseCase(categoryName)
         }
         LaunchedEffect(Unit) {
             getCartUseCase().collect { cartItems ->

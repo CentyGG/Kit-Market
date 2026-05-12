@@ -1,24 +1,68 @@
 package com.example.kit_market.data.repository
 
-import com.example.kit_market.data.fake.FakeProducts
+import com.example.kit_market.data.remote.ApiService
+import com.example.kit_market.data.remote.dto.ProductResponse
 import com.example.kit_market.domain.model.Category
 import com.example.kit_market.domain.model.Product
 import com.example.kit_market.domain.repository.ProductRepository
+import com.example.kit_market.domain.util.fuzzyMatchScore
 
-class ProductRepositoryImpl : ProductRepository {
+class ProductRepositoryImpl(
+    private val apiService: ApiService
+) : ProductRepository {
 
-    override suspend fun getCategories(): List<Category> = FakeProducts.categories
+    private var cachedProducts: List<Product>? = null
 
-    override suspend fun getProductsByCategory(categoryId: Long): List<Product> =
-        FakeProducts.products.filter { it.categoryId == categoryId }
+    override suspend fun getCategories(): List<Category> {
+        val products = getAllProducts()
+        val categoryNames = products.map { it.category }
+            .distinct()
+            .filter { it.isNotBlank() }
+        if (categoryNames.isEmpty()) {
+            return listOf(Category(name = "Все товары"))
+        }
+        return categoryNames.map { Category(name = it) }
+    }
+
+    override suspend fun getProductsByCategory(categoryName: String): List<Product> {
+        val products = getAllProducts()
+        if (categoryName == "Все товары") return products
+        return products.filter { it.category == categoryName }
+    }
 
     override suspend fun searchProducts(query: String): List<Product> {
-        if (query.isBlank()) return FakeProducts.products
-        return FakeProducts.products.filter {
-            it.name.contains(query, ignoreCase = true)
+        if (query.isBlank()) return getAllProducts()
+
+        val all = getAllProducts()
+        return all.mapNotNull { product ->
+            val score = fuzzyMatchScore(query, product.name)
+            if (score != null) product to score else null
+        }
+            .sortedBy { it.second }
+            .map { it.first }
+    }
+
+    override suspend fun getProductById(id: Long): Product? {
+        return getAllProducts().find { it.id == id }
+    }
+
+    private suspend fun getAllProducts(): List<Product> {
+        cachedProducts?.let { return it }
+        return try {
+            val products = apiService.getProducts().map { it.toDomain() }
+            cachedProducts = products
+            products
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
-    override suspend fun getProductById(id: Long): Product? =
-        FakeProducts.products.find { it.id == id }
+    private fun ProductResponse.toDomain(): Product = Product(
+        id = id,
+        name = name,
+        description = description,
+        imageUrl = imageUrl,
+        price = price.toDouble() / 100.0,
+        category = category
+    )
 }

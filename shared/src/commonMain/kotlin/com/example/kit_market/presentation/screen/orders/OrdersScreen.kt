@@ -1,5 +1,6 @@
 package com.example.kit_market.presentation.screen.orders
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,15 +13,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.domain.model.Order
 import com.example.kit_market.domain.model.OrderStatus
+import com.example.kit_market.presentation.screen.orderdetail.OrderDetailScreen
 import com.example.kit_market.presentation.theme.*
 
 class OrdersScreen : Screen {
@@ -29,7 +32,7 @@ class OrdersScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinScreenModel<OrdersScreenModel>()
+        val screenModel = koinInject<OrdersViewModel>()
         val state by screenModel.state.collectAsState()
 
         Scaffold(
@@ -69,7 +72,10 @@ class OrdersScreen : Screen {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(state.orders, key = { it.id }) { order ->
-                        OrderCard(order)
+                        OrderCard(
+                            order = order,
+                            onClick = { navigator.push(OrderDetailScreen(order.id)) }
+                        )
                     }
                 }
             }
@@ -78,9 +84,11 @@ class OrdersScreen : Screen {
 }
 
 @Composable
-private fun OrderCard(order: Order) {
+private fun OrderCard(order: Order, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = KitWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -88,43 +96,62 @@ private fun OrderCard(order: Order) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Заказ #${order.id}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KitTextPrimary
+                )
+                StatusChip(order.status)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = order.date,
+                fontSize = 14.sp,
+                color = KitTextSecondary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val dateStr = with(order.date) {
-                    "${dayOfMonth.toString().padStart(2, '0')}.${monthNumber.toString().padStart(2, '0')}.${year}"
-                }
-                val timeStr = with(order.date) {
-                    "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
-                }
                 Text(
-                    text = "Заказано $dateStr в $timeStr",
+                    text = "Итого",
                     fontSize = 14.sp,
                     color = KitTextSecondary
                 )
                 Text(
                     text = "${"%.2f".format(order.totalPrice)} \u20BD",
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = KitTextPrimary
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = { /* stub */ },
-                modifier = Modifier.fillMaxWidth().height(44.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
-                enabled = false
-            ) {
-                Text(
-                    text = when (order.status) {
-                        OrderStatus.DELIVERED -> "Посмотреть детали заказа"
-                        else -> "Отследить заказ"
-                    },
-                    color = KitWhite,
-                    fontSize = 14.sp
-                )
-            }
         }
+    }
+}
+
+@Composable
+private fun StatusChip(status: OrderStatus) {
+    val (backgroundColor, textColor) = when (status) {
+        OrderStatus.CREATED -> KitGrayLight to KitTextSecondary
+        OrderStatus.PAID -> Color(0xFFE3F2FD) to Color(0xFF1976D2)
+        OrderStatus.READY -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
+        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
+    }
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = backgroundColor
+    ) {
+        Text(
+            text = status.toRussian(),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = textColor
+        )
     }
 }

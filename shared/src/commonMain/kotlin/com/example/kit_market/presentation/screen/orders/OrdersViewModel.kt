@@ -1,28 +1,34 @@
 package com.example.kit_market.presentation.screen.orders
 
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kit_market.domain.usecase.GetOrdersUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OrdersScreenModel(
+class OrdersViewModel(
     private val getOrdersUseCase: GetOrdersUseCase
-) : ScreenModel {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(OrdersState())
     val state = _state.asStateFlow()
 
     init {
-        screenModelScope.launch {
-            getOrdersUseCase().collect { orders ->
+        loadOrders()
+    }
+
+    private fun loadOrders() {
+        viewModelScope.launch {
+            try {
+                val orders = getOrdersUseCase()
                 _state.update {
-                    it.copy(
-                        orders = orders.sortedByDescending { order -> order.date },
-                        isLoading = false
-                    )
+                    it.copy(orders = orders, isLoading = false)
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(isLoading = false, error = e.message)
                 }
             }
         }

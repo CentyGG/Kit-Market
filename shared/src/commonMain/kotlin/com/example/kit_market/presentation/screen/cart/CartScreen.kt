@@ -1,5 +1,6 @@
 package com.example.kit_market.presentation.screen.cart
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,18 +13,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import com.example.kit_market.domain.model.CartItem
 import com.example.kit_market.presentation.common.QuantityCounter
+import com.example.kit_market.presentation.screen.checkout.CheckoutScreen
 import com.example.kit_market.presentation.screen.productdetail.ProductDetailScreen
 import com.example.kit_market.presentation.theme.*
 
@@ -32,7 +35,7 @@ class CartScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinScreenModel<CartScreenModel>()
+        val screenModel = koinInject<CartViewModel>()
         val state by screenModel.state.collectAsState()
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -80,14 +83,14 @@ class CartScreen : Screen {
                     shadowElevation = 8.dp
                 ) {
                     Button(
-                        onClick = { /* stub */ },
+                        onClick = { navigator.push(CheckoutScreen()) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
-                        enabled = false
+                        enabled = true
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -135,12 +138,13 @@ private fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = item.product.imageUrl,
+                model = item.product.imageUrl.ifEmpty { null },
                 contentDescription = item.product.name,
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White),
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {

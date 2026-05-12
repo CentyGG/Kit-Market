@@ -1,5 +1,6 @@
 package com.example.kit_market.presentation.screen.productdetail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,7 +34,7 @@ data class ProductDetailScreen(val productId: Long) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinInject<ProductDetailScreenModel>(parameters = { parametersOf(productId) })
+        val screenModel = koinInject<ProductDetailViewModel>(parameters = { parametersOf(productId) })
         val state by screenModel.state.collectAsState()
 
         Scaffold(
@@ -68,13 +70,14 @@ data class ProductDetailScreen(val productId: Long) : Screen {
                         .padding(16.dp)
                 ) {
                     AsyncImage(
-                        model = product.imageUrl,
+                        model = product.imageUrl.ifEmpty { null },
                         contentDescription = product.name,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(250.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White),
+                        contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -128,58 +131,9 @@ data class ProductDetailScreen(val productId: Long) : Screen {
                         color = KitTextSecondary,
                         lineHeight = 20.sp
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Nutritional info
-                    Text(
-                        text = "Пищевая ценность (на 100 г)",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KitTextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        NutritionItem("Калории", "${product.calories}", "ккал")
-                        NutritionItem("Белки", "${product.protein}", "г")
-                        NutritionItem("Жиры", "${product.fat}", "г")
-                        NutritionItem("Углеводы", "${product.carbs}", "г")
-                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun NutritionItem(label: String, value: String, unit: String) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = KitBlueLight)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = value,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = KitBlue
-            )
-            Text(
-                text = unit,
-                fontSize = 12.sp,
-                color = KitTextSecondary
-            )
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                color = KitTextSecondary
-            )
-        }
-    }
-}

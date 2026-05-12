@@ -1,7 +1,7 @@
 package com.example.kit_market.presentation.screen.profile
 
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kit_market.domain.usecase.GetUserUseCase
 import com.example.kit_market.domain.usecase.LogoutUseCase
 import com.example.kit_market.domain.usecase.UpdateUserUseCase
@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ProfileScreenModel(
+class ProfileViewModel(
     private val getUserUseCase: GetUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
     private val logoutUseCase: LogoutUseCase
-) : ScreenModel {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
     val state = _state.asStateFlow()
@@ -27,7 +27,7 @@ class ProfileScreenModel(
     }
 
     private fun observeUser() {
-        screenModelScope.launch {
+        viewModelScope.launch {
             getUserUseCase().collect { user ->
                 _state.update {
                     it.copy(
@@ -64,13 +64,13 @@ class ProfileScreenModel(
                     firstName = _state.value.editFirstName,
                     lastName = _state.value.editLastName
                 )
-                screenModelScope.launch {
+                viewModelScope.launch {
                     updateUserUseCase(updated)
                     _state.update { it.copy(isEditing = false) }
                 }
             }
             ProfileIntent.Logout -> {
-                screenModelScope.launch {
+                viewModelScope.launch {
                     logoutUseCase()
                     _loggedOut.value = true
                 }

@@ -7,4 +7,5 @@ sealed interface ProductsIntent {
     data class AddToCart(val product: Product) : ProductsIntent
     data class Increment(val productId: Long) : ProductsIntent
     data class Decrement(val productId: Long) : ProductsIntent
+    data object Retry : ProductsIntent
 }

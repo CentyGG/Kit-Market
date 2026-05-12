@@ -1,7 +1,7 @@
 package com.example.kit_market.presentation.screen.cart
 
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kit_market.domain.usecase.GetCartUseCase
 import com.example.kit_market.domain.usecase.RemoveFromCartUseCase
 import com.example.kit_market.domain.usecase.UpdateCartItemQuantityUseCase
@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class CartScreenModel(
+class CartViewModel(
     private val getCartUseCase: GetCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
     private val removeFromCartUseCase: RemoveFromCartUseCase
-) : ScreenModel {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(CartState())
     val state = _state.asStateFlow()
@@ -24,7 +24,7 @@ class CartScreenModel(
     }
 
     private fun observeCart() {
-        screenModelScope.launch {
+        viewModelScope.launch {
             getCartUseCase().collect { items ->
                 val total = items.sumOf { it.product.price * it.quantity }
                 _state.update {
@@ -37,7 +37,7 @@ class CartScreenModel(
     fun onIntent(intent: CartIntent) {
         when (intent) {
             is CartIntent.Increment -> {
-                screenModelScope.launch {
+                viewModelScope.launch {
                     val item = _state.value.items.find { it.product.id == intent.productId }
                     if (item != null) {
                         updateCartItemQuantityUseCase(intent.productId, item.quantity + 1)
@@ -45,7 +45,7 @@ class CartScreenModel(
                 }
             }
             is CartIntent.Decrement -> {
-                screenModelScope.launch {
+                viewModelScope.launch {
                     val item = _state.value.items.find { it.product.id == intent.productId }
                     if (item != null) {
                         if (item.quantity <= 1) {
@@ -57,7 +57,7 @@ class CartScreenModel(
                 }
             }
             is CartIntent.Remove -> {
-                screenModelScope.launch { removeFromCartUseCase(intent.productId) }
+                viewModelScope.launch { removeFromCartUseCase(intent.productId) }
             }
         }
     }

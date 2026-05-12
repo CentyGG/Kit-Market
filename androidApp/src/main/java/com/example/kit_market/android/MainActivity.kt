@@ -4,10 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.kit_market.App
+import com.example.kit_market.data.remote.TokenStorage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TokenStorage.init(SharedPrefsTokenProvider(applicationContext))
         setContent {
             App()
         }

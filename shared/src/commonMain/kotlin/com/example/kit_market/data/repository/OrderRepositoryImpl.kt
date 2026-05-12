@@ -1,35 +1,62 @@
 package com.example.kit_market.data.repository
 
-import com.example.kit_market.domain.model.CartItem
-import com.example.kit_market.domain.model.Order
-import com.example.kit_market.domain.model.OrderStatus
+import com.example.kit_market.data.remote.ApiService
+import com.example.kit_market.data.remote.dto.OrderItemRequest
+import com.example.kit_market.data.remote.dto.OrderResponse
+import com.example.kit_market.domain.model.*
 import com.example.kit_market.domain.repository.OrderRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
-class OrderRepositoryImpl : OrderRepository {
+class OrderRepositoryImpl(
+    private val apiService: ApiService
+) : OrderRepository {
 
-    private val _orders = MutableStateFlow<List<Order>>(emptyList())
-    private var nextId = 1L
-
-    override suspend fun placeOrder(items: List<CartItem>): Order {
-        val totalPrice = items.sumOf { it.product.price * it.quantity }
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        val order = Order(
-            id = nextId++,
-            items = items,
-            totalPrice = totalPrice,
-            date = now,
-            status = OrderStatus.PROCESSING
-        )
-        _orders.update { it + order }
-        return order
+    override suspend fun createOrder(items: List<CartItem>): Order {
+        val request = items.map { OrderItemRequest(it.product.id, it.quantity) }
+        return apiService.createOrder(request).toDomain()
     }
 
-    override fun getOrders(): Flow<List<Order>> = _orders.asStateFlow()
+    override suspend fun getOrders(): List<Order> {
+        return apiService.getOrders().map { it.toDomain() }
+    }
+
+    override suspend fun getOrderById(id: Long): Order {
+        return apiService.getOrderById(id).toDomain()
+    }
+
+    override suspend fun createPayment(orderId: Long): PaymentInfo {
+        val response = apiService.createPayment(orderId)
+        return PaymentInfo(paymentId = response.paymentId, paymentUrl = response.paymentUrl)
+    }
+
+    override suspend fun getPaymentStatus(paymentId: String): PaymentStatus {
+        val response = apiService.getPaymentStatus(paymentId)
+        return PaymentStatus(
+            paymentId = response.paymentId,
+            status = response.status,
+            amount = response.amount
+        )
+    }
+
+    override suspend fun confirmPayment(paymentId: String): String {
+        val response = apiService.confirmPayment(paymentId)
+        return response.status
+    }
+
+    private fun OrderResponse.toDomain(): Order = Order(
+        id = id,
+        userId = userId,
+        items = items.map { item ->
+            OrderItem(
+                id = item.id,
+                productId = item.productId,
+                productName = item.productName,
+                quantity = item.quantity,
+                price = item.price.toDouble() / 100.0
+            )
+        },
+        totalPrice = total.toDouble() / 100.0,
+        date = orderDate,
+        status = OrderStatus.fromString(status),
+        hasReceipt = hasReceipt
+    )
 }

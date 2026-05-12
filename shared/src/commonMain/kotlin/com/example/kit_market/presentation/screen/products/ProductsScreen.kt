@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.domain.model.Category
@@ -34,7 +37,7 @@ class ProductsScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinScreenModel<ProductsScreenModel>()
+        val screenModel = koinInject<ProductsViewModel>()
         val state by screenModel.state.collectAsState()
 
         Column(modifier = Modifier.fillMaxSize().padding(top = 16.dp)) {
@@ -55,19 +58,55 @@ class ProductsScreen : Screen {
 
             if (state.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = KitBlue)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = KitBlue)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Загрузка товаров...",
+                            fontSize = 14.sp,
+                            color = KitTextSecondary
+                        )
+                    }
+                }
+            } else if (state.isError) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Не удалось загрузить товары",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = KitTextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Проверьте подключение к сети",
+                            fontSize = 14.sp,
+                            color = KitTextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { screenModel.onIntent(ProductsIntent.Retry) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = KitBlue)
+                        ) {
+                            Text("Повторить")
+                        }
+                    }
                 }
             } else if (state.isSearching) {
-                // Search results
-                LazyColumn(
+                // Search results — сетка по 2 в ряд
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
                         items = state.searchResults,
                         key = { it.id }
                     ) { product ->
-                        SearchResultItem(
+                        ProductCard(
                             product = product,
                             quantityInCart = state.cartQuantities[product.id] ?: 0,
                             onAddToCart = { screenModel.onIntent(ProductsIntent.AddToCart(product)) },
@@ -84,14 +123,14 @@ class ProductsScreen : Screen {
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     state.categories.forEach { category ->
-                        val products = state.productsByCategory[category.id] ?: emptyList()
-                        item(key = "header_${category.id}") {
+                        val products = state.productsByCategory[category.name] ?: emptyList()
+                        item(key = "header_${category.name}") {
                             CategoryHeader(
                                 category = category,
-                                onSeeAll = { navigator.push(CategoryProductsScreen(category.id, category.name)) }
+                                onSeeAll = { navigator.push(CategoryProductsScreen(category.name)) }
                             )
                         }
-                        item(key = "products_${category.id}") {
+                        item(key = "products_${category.name}") {
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -147,22 +186,3 @@ private fun CategoryHeader(
     }
 }
 
-@Composable
-private fun SearchResultItem(
-    product: Product,
-    quantityInCart: Int,
-    onAddToCart: () -> Unit,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    onClick: () -> Unit
-) {
-    ProductCard(
-        product = product,
-        quantityInCart = quantityInCart,
-        onAddToCart = onAddToCart,
-        onIncrement = onIncrement,
-        onDecrement = onDecrement,
-        onClick = onClick,
-        modifier = Modifier.padding(vertical = 4.dp)
-    )
-}

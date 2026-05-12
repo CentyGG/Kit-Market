@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Кит маркет — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; font-family: 'Andika', system-ui, sans-serif; background: #EAEEF5; }
+  *, *::before, *::after { box-sizing: border-box; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  button:active { transform: scale(0.98); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+// Kit Market — all 9 screens
+// Based on Figma frames. Colors/sizes extracted from .fig pseudocode.
+
+const BLUE = '#5383EC';
+const BLUE_DARK = '#425AC7';
+const GREEN = '#53B175';
+const TEXT = '#181725';
+const MUTED = '#7C7C7C';
+const BORDER = '#E2E2E2';
+const BG_GREY = '#F2F3F2';
+const BG_LIGHT = '#FCFCFC';
+
+// ── Status bar (mobile) ────────────────────────────────────────
+function StatusBar({ light = false }) {
+  const c = light ? '#fff' : TEXT;
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, right: 0, height: 44,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 26px', zIndex: 30, pointerEvents: 'none',
+    }}>
+      <span style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 500, fontSize: 15, color: c }}>9:41</span>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        <svg width="18" height="11" viewBox="0 0 18 11"><g fill={c}>
+          <rect x="0" y="7" width="3" height="4" rx="0.6"/>
+          <rect x="4.5" y="5" width="3" height="6" rx="0.6"/>
+          <rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.6"/>
+        </g></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill={c}>
+          <path d="M8 2.5C10.2 2.5 12.2 3.3 13.6 4.8L14.7 3.7C13 2 10.6 1 8 1C5.4 1 3 2 1.3 3.7L2.4 4.8C3.8 3.3 5.8 2.5 8 2.5Z"/>
+          <path d="M8 5.8C9.3 5.8 10.4 6.3 11.2 7.1L12.3 6C11 4.8 9.6 4.1 8 4.1C6.4 4.1 5 4.8 3.7 6L4.8 7.1C5.6 6.3 6.7 5.8 8 5.8Z"/>
+          <circle cx="8" cy="9.5" r="1.4"/>
+        </svg>
+        <svg width="26" height="12" viewBox="0 0 26 12">
+          <rect x="0.5" y="0.5" width="22" height="11" rx="2.7" stroke={c} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="19" height="8" rx="1.3" fill={c}/>
+          <path d="M24 4v4c0.8-0.3 1.3-1.1 1.3-2s-0.5-1.7-1.3-2z" fill={c} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function HomeIndicator({ light = false }) {
+  return (
+    <div style={{
+      position: 'absolute', bottom: 6, left: 0, right: 0, height: 20,
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      zIndex: 40, pointerEvents: 'none',
+    }}>
+      <div style={{
+        width: 134, height: 5, borderRadius: 100,
+        background: light ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.35)',
+      }} />
+    </div>
+  );
+}
+
+// ── Bottom tab bar ─────────────────────────────────────────────
+function TabBar({ active, onNav }) {
+  const items = [
+    { id: 'home', label: 'Продукты', icon: (
+      <svg width="26" height="22" viewBox="0 0 26 22" fill="none">
+        <path d="M2 7l11-5 11 5v13a1 1 0 01-1 1H3a1 1 0 01-1-1V7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+        <path d="M2 8h22M9 14h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) },
+    { id: 'cart', label: 'Корзина', icon: (
+      <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+        <path d="M2 2h3l3.5 13a2 2 0 002 1.5h10.5a2 2 0 002-1.5L25 7H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="11" cy="21" r="1.6" fill="currentColor"/>
+        <circle cx="21" cy="21" r="1.6" fill="currentColor"/>
+      </svg>
+    ) },
+    { id: 'profile', label: 'Профиль', icon: (
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="none">
+        <circle cx="11" cy="7" r="5" stroke="currentColor" strokeWidth="2"/>
+        <path d="M2 24c0-5 4-9 9-9s9 4 9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: 84, zIndex: 25,
+      background: '#fff',
+      boxShadow: '0 -8px 24px rgba(85,94,88,0.09)',
+      borderRadius: '15px 15px 0 0',
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around',
+      padding: '10px 20px 0',
+    }}>
+      {items.map(it => (
+        <button key={it.id} onClick={() => onNav(it.id)} style={{
+          all: 'unset', cursor: 'pointer', flex: 1,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+          color: active === it.id ? BLUE : TEXT,
+        }}>
+          {it.icon}
+          <span style={{ fontFamily: 'Andika, system-ui', fontSize: 12 }}>{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Logo badge ─────────────────────────────────────────────────
+function LogoBadge({ size = 'lg' }) {
+  const h = size === 'lg' ? 68 : 54;
+  const w = size === 'lg' ? 239 : 190;
+  const fs = size === 'lg' ? 32 : 26;
+  return (
+    <div style={{
+      width: w, height: h, borderRadius: 10, background: BLUE,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'Andika, system-ui', fontWeight: 700, fontSize: fs, color: '#fff',
+    }}>Кит маркет</div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 1 — Splash
+// ═══════════════════════════════════════════════════════════════
+function SplashScreen({ onNext }) {
+  React.useEffect(() => {
+    const t = setTimeout(() => onNext && onNext(), 1600);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div data-screen-label="01 Splash" style={screenFull(BLUE)}>
+      <StatusBar light />
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{
+          fontFamily: 'Andika, system-ui', fontWeight: 700, fontSize: 36, color: '#fff',
+        }}>Кит маркет</div>
+      </div>
+      <HomeIndicator light />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 2 — Phone login
+// ═══════════════════════════════════════════════════════════════
+function LoginScreen({ onNext }) {
+  const [phone, setPhone] = React.useState('');
+  const fmt = (v) => {
+    const d = v.replace(/\D/g, '').slice(0, 10);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `(${d.slice(0,3)}) ${d.slice(3)}`;
+    if (d.length <= 8) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+    return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6,8)}-${d.slice(8)}`;
+  };
+  return (
+    <div data-screen-label="02 Login" style={screenFull('#fff')}>
+      <StatusBar />
+      {/* decorative top image */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 290,
+        backgroundImage: 'url(assets/veg-header.png)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+      }} />
+      <div style={{ position: 'absolute', top: 260, left: 58, right: 58, display: 'flex', justifyContent: 'center' }}>
+        <LogoBadge />
+      </div>
+      <div style={{
+        position: 'absolute', top: 430, left: 28, right: 28,
+        fontFamily: 'Andika, system-ui', fontSize: 22, color: TEXT,
+      }}>Введите номер телефона</div>
+      <div style={{
+        position: 'absolute', top: 478, left: 28, right: 28,
+        borderBottom: `1px solid ${BORDER}`, paddingBottom: 12,
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div style={{
+          width: 34, height: 22, borderRadius: 3, overflow: 'hidden',
+          boxShadow: '0 0 0 0.5px rgba(0,0,0,0.1)',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{ flex: 1, background: '#fff' }}/>
+          <div style={{ flex: 1, background: '#0039A6' }}/>
+          <div style={{ flex: 1, background: '#D52B1E' }}/>
+        </div>
+        <span style={{ fontFamily: 'Andika, system-ui', fontSize: 18, color: TEXT }}>+7</span>
+        <input
+          value={fmt(phone)}
+          onChange={e => setPhone(e.target.value)}
+          placeholder="(___) ___-__-__"
+          style={{
+            all: 'unset', flex: 1,
+            fontFamily: 'Andika, system-ui', fontSize: 18, color: TEXT,
+          }}
+        />
+      </div>
+      <div style={{ position: 'absolute', bottom: 120, left: 28, right: 28 }}>
+        <PrimaryButton onClick={onNext}>
+          Продолжить
+        </PrimaryButton>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 3 — Home / Продукты
+// ═══════════════════════════════════════════════════════════════
+const PRODUCTS = [
+  { id: 'banana', name: 'Бананы', sub: '7шт, Цена', price: 200, img: 'assets/bananas.png', cat: 'Фрукты', bestseller: false },
+  { id: 'apple', name: 'Яблоки красные', sub: '1кг, Цена', price: 100, img: 'assets/apples.png', cat: 'Фрукты', bestseller: false },
+  { id: 'pepper', name: 'Красный перец', sub: '1кг, Цена', price: 500, img: 'assets/pepper.png', cat: 'Бестселлеры', bestseller: true },
+  { id: 'ginger', name: 'Имбирь', sub: '250г, Цена', price: 250, img: 'assets/ginger.png', cat: 'Бестселлеры', bestseller: true },
+];
+
+function ProductCard({ p, onOpen, onAdd }) {
+  return (
+    <button onClick={() => onOpen(p)} style={{
+      all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+      background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 18,
+      padding: 14, display: 'flex', flexDirection: 'column', gap: 4,
+      height: 248, position: 'relative',
+    }}>
+      <div style={{
+        height: 110, marginTop: 4, marginBottom: 14,
+        backgroundImage: `url(${p.img})`, backgroundSize: 'contain',
+        backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+      }}/>
+      <div style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: TEXT, letterSpacing: 0.1 }}>{p.name}</div>
+      <div style={{ fontFamily: 'Andika, system-ui', fontSize: 14, color: MUTED, marginTop: 2 }}>{p.sub}</div>
+      <div style={{ flex: 1 }}/>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'Andika, system-ui', fontSize: 18, color: TEXT }}>{p.price}</span>
+        <span onClick={(e) => { e.stopPropagation(); onAdd(p); }} style={{
+          width: 45, height: 45, borderRadius: 17, background: BLUE,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 10px rgba(83,131,236,0.3)',
+        }}>
+          <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+            <path d="M8.5 2v13M2 8.5h13" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function HomeScreen({ onNav, onOpen, onAdd, onFilter }) {
+  const fruits = PRODUCTS.filter(p => p.cat === 'Фрукты');
+  const bestsellers = PRODUCTS.filter(p => p.bestseller);
+  return (
+    <div data-screen-label="03 Home" style={screenFull('#fff')}>
+      <StatusBar />
+      <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 84, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 20px' }}>
+          <LogoBadge />
+        </div>
+        {/* search */}
+        <div style={{ padding: '0 22px' }}>
+          <div style={{
+            height: 54, borderRadius: 15, background: BG_GREY,
+            display: 'flex', alignItems: 'center', padding: '0 18px', gap: 10,
+            cursor: 'pointer',
+          }} onClick={onFilter}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="7.5" cy="7.5" r="5.5" stroke={TEXT} strokeWidth="1.8"/>
+              <path d="M12 12l4 4" stroke={TEXT} strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <span style={{ fontFamily: 'Andika, system-ui', fontSize: 14, color: MUTED, flex: 1 }}>Найти продукт</span>
+            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" onClick={onFilter} style={{ cursor: 'pointer' }}>
+              <path d="M1 2h16M4 7h10M7 12h4" stroke={TEXT} strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Фрукты */}
+        <Section title="Фрукты">
+          {fruits.map(p => <ProductCard key={p.id} p={p} onOpen={onOpen} onAdd={onAdd}/>)}
+        </Section>
+
+        {/* Бестселлеры */}
+        <Section title="Бестселлеры">
+          {bestsellers.map(p => <ProductCard key={p.id} p={p} onOpen={onOpen} onAdd={onAdd}/>)}
+        </Section>
+        <div style={{ height: 20 }}/>
+      </div>
+      <TabBar active="home" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <div style={{ padding: '28px 22px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+        <h2 style={{ margin: 0, fontFamily: 'Andika, system-ui', fontSize: 24, color: TEXT, fontWeight: 400 }}>{title}</h2>
+        <span style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: BLUE, cursor: 'pointer' }}>Посмотреть все</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>{children}</div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 4 — Product detail
+// ═══════════════════════════════════════════════════════════════
+function ProductScreen({ product, onBack, onAdd }) {
+  const [qty, setQty] = React.useState(1);
+  const [descOpen, setDescOpen] = React.useState(true);
+  if (!product) return null;
+  return (
+    <div data-screen-label="04 Product" style={screenFull('#fff')}>
+      <StatusBar />
+      <div style={{
+        position: 'absolute', top: 44, left: 0, right: 0, height: 380,
+        background: BG_GREY, borderRadius: '0 0 24px 24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{
+          width: 260, height: 260,
+          backgroundImage: `url(${product.img})`, backgroundSize: 'contain',
+          backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+        }}/>
+        <div style={{
+          position: 'absolute', bottom: 22, left: 0, right: 0,
+          display: 'flex', gap: 6, justifyContent: 'center',
+        }}>
+          <div style={{ width: 20, height: 4, borderRadius: 2, background: GREEN }}/>
+          <div style={{ width: 4, height: 4, borderRadius: 2, background: '#B3B3B3' }}/>
+          <div style={{ width: 4, height: 4, borderRadius: 2, background: '#B3B3B3' }}/>
+        </div>
+      </div>
+      <button onClick={onBack} style={{
+        all: 'unset', cursor: 'pointer', position: 'absolute', top: 64, left: 20,
+        width: 40, height: 40, borderRadius: 20, background: 'rgba(255,255,255,0.9)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+      }}>
+        <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
+          <path d="M9 1L1 9l8 8" stroke={TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <div style={{ position: 'absolute', top: 450, left: 26, right: 26 }}>
+        <h1 style={{ margin: 0, fontFamily: 'Andika, system-ui', fontWeight: 400, fontSize: 28, color: TEXT }}>{product.name}</h1>
+        <div style={{ marginTop: 4, fontFamily: 'Andika, system-ui', fontSize: 14, color: MUTED }}>{product.sub}</div>
+
+        <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Stepper value={qty} onChange={setQty} />
+          </div>
+          <div style={{ fontFamily: 'Andika, system-ui', fontSize: 24, color: TEXT }}>
+            {product.price * qty}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: BORDER, margin: '24px 0 0' }}/>
+
+        <button onClick={() => setDescOpen(v => !v)} style={{
+          all: 'unset', cursor: 'pointer', width: '100%',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '18px 0',
+        }}>
+          <span style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: TEXT }}>Описание продукта</span>
+          <svg width="14" height="8" viewBox="0 0 14 8" style={{ transform: descOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>
+            <path d="M1 1l6 6 6-6" stroke={TEXT} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {descOpen && (
+          <div style={{ fontFamily: 'Andika, system-ui', fontSize: 14, color: MUTED, lineHeight: 1.5, paddingBottom: 16 }}>
+            Свежие {product.name.toLowerCase()} высшего сорта. Поставка каждое утро от проверенных фермерских хозяйств.
+          </div>
+        )}
+        <div style={{ height: 1, background: BORDER }}/>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 32, left: 22, right: 22 }}>
+        <PrimaryButton onClick={() => onAdd(product, qty)}>Добавить в корзину</PrimaryButton>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function Stepper({ value, onChange, size = 'md' }) {
+  const h = size === 'sm' ? 40 : 48;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <button onClick={() => onChange(Math.max(0, value - 1))} style={{
+        all: 'unset', cursor: 'pointer', width: h, height: h, borderRadius: 14,
+        border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="14" height="2" viewBox="0 0 14 2"><rect width="14" height="2" rx="1" fill={MUTED}/></svg>
+      </button>
+      <div style={{ minWidth: 28, textAlign: 'center', fontFamily: 'Andika, system-ui', fontSize: 18, color: TEXT }}>{value}</div>
+      <button onClick={() => onChange(value + 1)} style={{
+        all: 'unset', cursor: 'pointer', width: h, height: h, borderRadius: 14,
+        border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1v12M1 7h12" stroke={BLUE} strokeWidth="2" strokeLinecap="round"/></svg>
+      </button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 5 — Cart
+// ═══════════════════════════════════════════════════════════════
+function CartScreen({ cart, setCart, onNav, onCheckout }) {
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const update = (id, qty) => setCart(cart.map(i => i.id === id ? { ...i, qty } : i).filter(i => i.qty > 0));
+  const remove = (id) => setCart(cart.filter(i => i.id !== id));
+  return (
+    <div data-screen-label="05 Cart" style={screenFull('#fff')}>
+      <StatusBar />
+      <div style={{
+        position: 'absolute', top: 58, left: 0, right: 0, height: 44,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'Andika, system-ui', fontSize: 20, color: TEXT,
+        borderBottom: `1px solid ${BORDER}`,
+      }}>Корзина</div>
+
+      <div style={{
+        position: 'absolute', top: 120, left: 0, right: 0, bottom: cart.length ? 164 : 84,
+        overflowY: 'auto', padding: '0 22px',
+      }}>
+        {cart.length === 0 && (
+          <div style={{
+            textAlign: 'center', marginTop: 100,
+            fontFamily: 'Andika, system-ui', color: MUTED, fontSize: 16,
+          }}>Корзина пуста</div>
+        )}
+        {cart.map((item, idx) => (
+          <div key={item.id} style={{
+            display: 'flex', gap: 14, padding: '18px 0',
+            borderBottom: idx < cart.length - 1 ? `1px solid ${BORDER}` : 'none',
+          }}>
+            <div style={{
+              width: 90, height: 90,
+              backgroundImage: `url(${item.img})`, backgroundSize: 'contain',
+              backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+              flexShrink: 0,
+            }}/>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: TEXT }}>{item.name}</div>
+                  <div style={{ fontFamily: 'Andika, system-ui', fontSize: 13, color: MUTED, marginTop: 2 }}>{item.sub}</div>
+                </div>
+                <button onClick={() => remove(item.id)} style={{ all: 'unset', cursor: 'pointer', padding: 4 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 2l12 12M14 2L2 14" stroke={MUTED} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Stepper value={item.qty} onChange={(q) => update(item.id, q)} size="sm" />
+                <div style={{ fontFamily: 'Andika, system-ui', fontSize: 18, color: TEXT }}>{item.price * item.qty}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {cart.length > 0 && (
+        <div style={{ position: 'absolute', bottom: 100, left: 22, right: 22 }}>
+          <PrimaryButton onClick={onCheckout}>
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <span>Сделать заказ</span>
+              <span style={{
+                background: BLUE_DARK, padding: '4px 10px', borderRadius: 6,
+                fontSize: 13, fontFamily: 'Andika, system-ui',
+              }}>{total}</span>
+            </span>
+          </PrimaryButton>
+        </div>
+      )}
+
+      <TabBar active="cart" onNav={onNav}/>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 6 — Checkout bottom sheet (Оплата)
+// ═══════════════════════════════════════════════════════════════
+function CheckoutSheet({ total, onClose, onOrder }) {
+  const [method, setMethod] = React.useState('pickup');
+  const [promo, setPromo] = React.useState('');
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 60,
+      background: 'rgba(0,0,0,0.3)',
+      display: 'flex', alignItems: 'flex-end',
+    }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: BG_LIGHT,
+        borderRadius: '20px 20px 0 0',
+        padding: '22px 24px 120px',
+        animation: 'slideUp 0.3s ease-out',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ margin: 0, fontFamily: 'Andika, system-ui', fontWeight: 400, fontSize: 22, color: TEXT }}>Оплата</h2>
+          <button onClick={onClose} style={{ all: 'unset', cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 2l14 14M16 2L2 16" stroke={MUTED} strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <CheckoutRow label="Самовывоз" value={method === 'pickup' ? 'Магазин на Ленина' : 'Выберите метод'}/>
+        <CheckoutRow label="Оплата" value={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 26, height: 18, position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0, top: 0, width: 14, height: 14, borderRadius: '50%', background: '#EB001B' }}/>
+              <span style={{ position: 'absolute', right: 0, top: 0, width: 14, height: 14, borderRadius: '50%', background: '#F79E1B', opacity: 0.9, mixBlendMode: 'multiply' }}/>
+            </span>
+          </span>
+        }/>
+        <CheckoutRow label="Промокод" value="Выберите промокод"/>
+        <CheckoutRow label="Стоимость" value={total} noChevron/>
+
+        <div style={{
+          fontFamily: 'Andika, system-ui', fontSize: 13, color: MUTED,
+          marginTop: 24, marginBottom: 20, lineHeight: 1.4,
+        }}>
+          Оплачивая, вы соглашаетесь с <b style={{ color: TEXT }}>правилами использования</b>
+        </div>
+
+        <PrimaryButton onClick={onOrder}>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+            <span>Сделать заказ</span>
+            <span style={{
+              background: BLUE_DARK, padding: '4px 10px', borderRadius: 6,
+              fontSize: 13, fontFamily: 'Andika, system-ui',
+            }}>{total}</span>
+          </span>
+        </PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutRow({ label, value, noChevron }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '18px 0', borderBottom: `1px solid ${BORDER}`,
+    }}>
+      <span style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: MUTED }}>{label}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Andika, system-ui', fontSize: 16, color: TEXT }}>
+        {value}
+        {!noChevron && (
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+            <path d="M1 1l6 6-6 6" stroke={TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </span>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 7 — Filter
+// ═══════════════════════════════════════════════════════════════
+function FilterScreen({ onClose, onApply }) {
+  const [selected, setSelected] = React.useState(['eggs']);
+  const cats = [
+    { id: 'eggs', label: 'Яйца' },
+    { id: 'noodles', label: 'Лапша' },
+    { id: 'chips', label: 'Чипсы' },
+    { id: 'fast', label: 'Быстрая еда' },
+  ];
+  const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  return (
+    <div data-screen-label="06 Filter" style={screenFull('#fff')}>
+      <StatusBar />
+      <div style={{
+        position: 'absolute', top: 60, left: 0, right: 0, height: 44,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontFamily: 'Andika, system-ui', fontSize: 20, color: TEXT }}>Фильтр</span>
+      </div>
+      <button onClick={onClose} style={{
+        all: 'unset', cursor: 'pointer', position: 'absolute', top: 60, left: 22,
+        width: 44, height: 44, display: 'flex', alignItems: 'center',
+      }}>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 2l14 14M16 2L2 16" stroke={TEXT} strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </button>
+
+      <div style={{
+        position: 'absolute', top: 130, left: 0, right: 0, bottom: 120,
+        background: '#F7F7F7', borderRadius: '20px 20px 0 0',
+        padding: '28px 26px',
+      }}>
+        <h2 style={{ margin: 0, fontFamily: 'Andika, system-ui', fontWeight: 400, fontSize: 26, color: TEXT }}>Категории</h2>
+        <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {cats.map(c => {
+            const on = selected.includes(c.id);
+            return (
+              <button key={c.id} onClick={() => toggle(c.id)} style={{
+                all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14,
+              }}>
+                <div style={{
+                  width: 26, height: 26, borderRadius: 6,
+                  background: on ? BLUE : 'transparent',
+                  border: `1.5px solid ${on ? BLUE : '#B3B3B3'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {on && (
+                    <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+                      <path d="M1 5l4 4L13 1" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <span style={{ fontFamily: 'Andika, system-ui', fontSize: 16, color: on ? BLUE : TEXT }}>{c.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 32, left: 22, right: 22 }}>
+        <PrimaryButton onClick={onApply}>Принять фильтр</PrimaryButton>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 8 — Order history
+// ═══════════════════════════════════════════════════════════════
+function OrdersScreen({ onBack, onNav, onTrack }) {
+  const orders = [
+    { date: '01.12.25', time: '10:23', sum: 900, live: true },
+    { date: '29.12.25', time: '10:23', sum: 900 },
+    { date: '29.12.25', time: '10:23', sum: 900 },
+    { date: '25.12.25', time: '10:23', sum: 900 },
+    { date: '19.12.25', time: '10:23', sum: 900 },
+  ];
+  return (
+    <div data-screen-label="07 Orders" style={screenFull('#fff')}>
+      <StatusBar />
+      <button onClick={onBack} style={{
+        all: 'unset', cursor: 'pointer', position: 'absolute', top: 62, left: 22,
+        width: 44, height: 44, borderRadius: 22, background: BLUE,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 10px rgba(83,131,236,0.3)',
+      }}>
+        <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+          <path d="M8 1L2 7l6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <div style={{ position: 'absolute', top: 120, left: 24, right: 24 }}>
+        <h1 style={{ margin: 0, fontFamily: 'Andika, system-ui', fontWeight: 400, fontSize: 32, color: TEXT, letterSpacing: -0.5 }}>
+          История заказов
+        </h1>
+      </div>
+
+      <div style={{
+        position: 'absolute', top: 200, left: 0, right: 0, bottom: 84,
+        overflowY: 'auto', padding: '0 24px',
+      }}>
+        {orders.map((o, i) => (
+          <div key={i} style={{ marginBottom: 22 }}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', marginBottom: 10,
+              fontFamily: 'Andika, system-ui', fontSize: 14, color: MUTED,
+            }}>
+              <span>Заказано {o.date} В {o.time}</span>
+              <span>Сумма: {o.sum}</span>
+            </div>
+            {o.live ? (
+              <PrimaryButton onClick={onTrack}>Отследить заказ</PrimaryButton>
+            ) : (
+              <button style={{
+                all: 'unset', cursor: 'pointer', width: '100%', boxSizing: 'border-box',
+                height: 58, borderRadius: 29, border: `1.5px solid ${BLUE}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Andika, system-ui', fontSize: 16, color: BLUE,
+              }}>Посмотреть детали заказа</button>
+            )}
+          </div>
+        ))}
+        <div style={{ height: 20 }}/>
+      </div>
+
+      <TabBar active="profile" onNav={onNav}/>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Screen 9 — Profile
+// ═══════════════════════════════════════════════════════════════
+function ProfileScreen({ onNav, onOrders, onLogout }) {
+  return (
+    <div data-screen-label="08 Profile" style={screenFull('#fff')}>
+      <StatusBar />
+      <div style={{ position: 'absolute', top: 70, left: 0, right: 0, bottom: 84, overflowY: 'auto' }}>
+        <div style={{ padding: '16px 24px 24px', display: 'flex', alignItems: 'center', gap: 16, borderBottom: `1px solid ${BORDER}` }}>
+          <div style={{
+            width: 70, height: 70, borderRadius: 35, overflow: 'hidden',
+            backgroundImage: 'url(assets/cat-avatar.jpg)', backgroundSize: 'cover', backgroundPosition: 'center',
+            flexShrink: 0,
+          }}/>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontFamily: 'Andika, system-ui', fontSize: 20, color: TEXT }}>Иван</div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M10 1l3 3-9 9H1v-3l9-9z" stroke={GREEN} strokeWidth="1.5" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <ProfileRow icon={
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M3 6h16v13a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" stroke={TEXT} strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M7 6V4a4 4 0 018 0v2" stroke={TEXT} strokeWidth="1.5"/>
+          </svg>
+        } label="Заказы" onClick={onOrders}/>
+        <ProfileRow icon={
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M5 16V9a6 6 0 0112 0v7l2 3H3l2-3z" stroke={TEXT} strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M9 20a2 2 0 004 0" stroke={TEXT} strokeWidth="1.5"/>
+          </svg>
+        } label="Уведомления"/>
+        <ProfileRow icon={
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <circle cx="11" cy="11" r="9" stroke={TEXT} strokeWidth="1.5"/>
+            <path d="M8 8.5a3 3 0 016 0c0 1.5-1 2-2 2.5s-1 1-1 2M11 15.5v.5" stroke={TEXT} strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        } label="Помощь" last/>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 110, left: 22, right: 22 }}>
+        <button onClick={onLogout} style={{
+          all: 'unset', cursor: 'pointer', width: '100%', boxSizing: 'border-box',
+          height: 60, borderRadius: 18, background: '#F1F1F1',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
+          fontFamily: 'Andika, system-ui', fontSize: 18, color: BLUE,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M14 3H4a1 1 0 00-1 1v14a1 1 0 001 1h10M10 11h11m0 0l-4-4m4 4l-4 4" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Выйти
+        </button>
+      </div>
+
+      <TabBar active="profile" onNav={onNav}/>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function ProfileRow({ icon, label, onClick, last }) {
+  return (
+    <button onClick={onClick} style={{
+      all: 'unset', cursor: 'pointer', width: '100%', boxSizing: 'border-box',
+      display: 'flex', alignItems: 'center', gap: 16, padding: '20px 24px',
+      borderBottom: last ? 'none' : `1px solid ${BORDER}`,
+    }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 12, background: BG_LIGHT,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>{icon}</div>
+      <span style={{ flex: 1, fontFamily: 'Andika, system-ui', fontSize: 17, color: TEXT }}>{label}</span>
+      <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+        <path d="M1 1l6 6-6 6" stroke={TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
+  );
+}
+
+// ── Shared atoms ───────────────────────────────────────────────
+function PrimaryButton({ children, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      all: 'unset', cursor: disabled ? 'not-allowed' : 'pointer',
+      width: '100%', boxSizing: 'border-box',
+      height: 58, borderRadius: 29, background: disabled ? '#B3C5F0' : BLUE,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'Andika, system-ui', fontSize: 18, color: '#fff',
+      textAlign: 'center',
+      boxShadow: disabled ? 'none' : '0 4px 14px rgba(83,131,236,0.35)',
+      transition: 'transform 0.1s',
+    }}>{children}</button>
+  );
+}
+
+function screenFull(bg) {
+  return {
+    position: 'absolute', inset: 0, background: bg, overflow: 'hidden',
+  };
+}
+
+Object.assign(window, {
+  SplashScreen, LoginScreen, HomeScreen, ProductScreen, CartScreen,
+  CheckoutSheet, FilterScreen, OrdersScreen, ProfileScreen,
+  PRODUCTS,
+});
+
+</script>
+
+<script type="text/babel">
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "accent": "#5383EC",
+  "radius": 18,
+  "showFrame": true
+}/*EDITMODE-END*/;
+
+const DEVICE_W = 414;
+const DEVICE_H = 896;
+
+function Device({ children }) {
+  return (
+    <div style={{
+      width: DEVICE_W, height: DEVICE_H, position: 'relative',
+      borderRadius: 52, overflow: 'hidden',
+      background: '#fff',
+      boxShadow: '0 30px 80px rgba(20,30,60,0.18), 0 0 0 12px #0B0F1A, 0 0 0 13px #262B38',
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function App() {
+  const [route, setRoute] = React.useState(() => localStorage.getItem('kitmarket.route') || 'splash');
+  const [authed, setAuthed] = React.useState(() => localStorage.getItem('kitmarket.authed') === '1');
+  const [cart, setCart] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('kitmarket.cart') || '[]'); } catch { return []; }
+  });
+  const [product, setProduct] = React.useState(null);
+  const [checkoutOpen, setCheckoutOpen] = React.useState(false);
+  const [filterOpen, setFilterOpen] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+  const [orderPlaced, setOrderPlaced] = React.useState(false);
+  const [tweaks, setTweaks] = React.useState(TWEAKS);
+  const [tweaksOpen, setTweaksOpen] = React.useState(false);
+
+  React.useEffect(() => { localStorage.setItem('kitmarket.route', route); }, [route]);
+  React.useEffect(() => { localStorage.setItem('kitmarket.cart', JSON.stringify(cart)); }, [cart]);
+  React.useEffect(() => { localStorage.setItem('kitmarket.authed', authed ? '1' : '0'); }, [authed]);
+
+  // Tweaks integration
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.data?.type === '__activate_edit_mode') setTweaksOpen(true);
+      if (e.data?.type === '__deactivate_edit_mode') setTweaksOpen(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const setTweak = (k, v) => {
+    const next = { ...tweaks, [k]: v };
+    setTweaks(next);
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*');
+  };
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 1400);
+  };
+
+  // ── Splash routing logic ────────────────────────────────────
+  const handleSplashNext = () => {
+    setRoute(authed ? 'home' : 'login');
+  };
+
+  const addToCart = (p, qty = 1) => {
+    setCart(prev => {
+      const ex = prev.find(i => i.id === p.id);
+      if (ex) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + qty } : i);
+      return [...prev, { ...p, qty }];
+    });
+    showToast(`${p.name} добавлен`);
+  };
+
+  const openProduct = (p) => { setProduct(p); setRoute('product'); };
+  const navTab = (t) => {
+    if (t === 'home') setRoute('home');
+    else if (t === 'cart') setRoute('cart');
+    else if (t === 'profile') setRoute('profile');
+  };
+
+  const placeOrder = () => {
+    setCart([]);
+    setCheckoutOpen(false);
+    setOrderPlaced(true);
+    setTimeout(() => { setOrderPlaced(false); setRoute('profile'); }, 1600);
+  };
+
+  let screen = null;
+  if (route === 'splash') {
+    screen = <SplashScreen onNext={handleSplashNext} />;
+  } else if (route === 'login') {
+    screen = <LoginScreen onNext={() => { setAuthed(true); setRoute('home'); }} />;
+  } else if (route === 'home') {
+    screen = <HomeScreen
+      onNav={navTab}
+      onOpen={openProduct}
+      onAdd={addToCart}
+      onFilter={() => setFilterOpen(true)}
+    />;
+  } else if (route === 'product') {
+    screen = <ProductScreen
+      product={product}
+      onBack={() => setRoute('home')}
+      onAdd={(p, q) => { addToCart(p, q); setRoute('home'); }}
+    />;
+  } else if (route === 'cart') {
+    screen = <CartScreen
+      cart={cart} setCart={setCart}
+      onNav={navTab}
+      onCheckout={() => setCheckoutOpen(true)}
+    />;
+  } else if (route === 'profile') {
+    screen = <ProfileScreen
+      onNav={navTab}
+      onOrders={() => setRoute('orders')}
+      onLogout={() => { setAuthed(false); setRoute('login'); }}
+    />;
+  } else if (route === 'orders') {
+    screen = <OrdersScreen
+      onBack={() => setRoute('profile')}
+      onNav={navTab}
+      onTrack={() => showToast('Заказ в пути · 15 мин')}
+    />;
+  }
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+  return (
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 40, gap: 40,
+    }}>
+      <Device>
+        {screen}
+        {checkoutOpen && <CheckoutSheet total={total} onClose={() => setCheckoutOpen(false)} onOrder={placeOrder}/>}
+        {filterOpen && <FilterScreen onClose={() => setFilterOpen(false)} onApply={() => setFilterOpen(false)}/>}
+        {toast && (
+          <div style={{
+            position: 'absolute', bottom: 110, left: '50%', transform: 'translateX(-50%)',
+            background: 'rgba(24,23,37,0.9)', color: '#fff', padding: '10px 18px',
+            borderRadius: 22, fontFamily: 'Andika, system-ui', fontSize: 14,
+            zIndex: 100, animation: 'fadeIn 0.2s',
+          }}>{toast}</div>
+        )}
+        {orderPlaced && (
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.96)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200, gap: 18,
+          }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: 40, background: '#53B175',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="40" height="30" viewBox="0 0 40 30" fill="none">
+                <path d="M2 15l12 12L38 3" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div style={{ fontFamily: 'Andika, system-ui', fontSize: 22, color: '#181725' }}>Заказ оформлен</div>
+          </div>
+        )}
+      </Device>
+
+      {/* Side panel: flow + tweaks */}
+      <div style={{ width: 280, fontFamily: 'system-ui', color: '#2a3142' }}>
+        <div style={{ fontSize: 13, color: '#6b7794', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Кит маркет · Prototype</div>
+        <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, marginBottom: 18 }}>9 экранов · iOS</div>
+        <div style={{ fontSize: 13, lineHeight: 1.6, color: '#4a5168', marginBottom: 20 }}>
+          Все экраны интерактивны. Navigation flow прописан по вашей спецификации. State сохраняется в localStorage — обновляйте страницу без потери корзины.
+        </div>
+
+        <FlowItem label="Splash → Login / Home" active={route === 'splash'}/>
+        <FlowItem label="Login → Home" active={route === 'login'}/>
+        <FlowItem label="Home (каталог)" active={route === 'home'}/>
+        <FlowItem label="Product detail" active={route === 'product'}/>
+        <FlowItem label="Cart" active={route === 'cart'}/>
+        <FlowItem label="Checkout sheet" active={checkoutOpen}/>
+        <FlowItem label="Filter modal" active={filterOpen}/>
+        <FlowItem label="Profile" active={route === 'profile'}/>
+        <FlowItem label="Orders history" active={route === 'orders'}/>
+
+        <div style={{ marginTop: 22, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <QuickBtn onClick={() => { localStorage.clear(); location.reload(); }}>Сбросить</QuickBtn>
+          <QuickBtn onClick={() => setRoute('splash')}>Splash</QuickBtn>
+          <QuickBtn onClick={() => setRoute('login')}>Login</QuickBtn>
+        </div>
+
+        {tweaksOpen && (
+          <div style={{
+            marginTop: 24, padding: 16, borderRadius: 14,
+            background: '#fff', boxShadow: '0 8px 24px rgba(30,40,70,0.08)',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Tweaks</div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Accent color</label>
+            <input type="color" value={tweaks.accent} onChange={e => setTweak('accent', e.target.value)} style={{ width: '100%', height: 32, border: 'none', marginBottom: 12 }}/>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Card radius: {tweaks.radius}</label>
+            <input type="range" min="6" max="28" value={tweaks.radius} onChange={e => setTweak('radius', +e.target.value)} style={{ width: '100%' }}/>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FlowItem({ label, active }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0',
+      fontSize: 13, color: active ? '#5383EC' : '#6b7794',
+      fontWeight: active ? 600 : 400,
+    }}>
+      <div style={{
+        width: 6, height: 6, borderRadius: 3,
+        background: active ? '#5383EC' : '#c9cfdc',
+      }}/>
+      {label}
+    </div>
+  );
+}
+
+function QuickBtn({ children, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      all: 'unset', cursor: 'pointer', padding: '6px 12px',
+      background: '#fff', borderRadius: 8, fontSize: 12,
+      color: '#4a5168', boxShadow: '0 2px 6px rgba(30,40,70,0.06)',
+    }}>{children}</button>
+  );
+}
+
+// Wait for screens.jsx to load
+const tryMount = () => {
+  if (typeof SplashScreen === 'undefined') { setTimeout(tryMount, 30); return; }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+};
+tryMount();
+</script>
+</body>
+</html>

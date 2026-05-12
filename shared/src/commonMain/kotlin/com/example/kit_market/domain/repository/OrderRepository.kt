@@ -2,9 +2,14 @@ package com.example.kit_market.domain.repository
 
 import com.example.kit_market.domain.model.CartItem
 import com.example.kit_market.domain.model.Order
-import kotlinx.coroutines.flow.Flow
+import com.example.kit_market.domain.model.PaymentInfo
+import com.example.kit_market.domain.model.PaymentStatus
 
 interface OrderRepository {
-    suspend fun placeOrder(items: List<CartItem>): Order
-    fun getOrders(): Flow<List<Order>>
+    suspend fun createOrder(items: List<CartItem>): Order
+    suspend fun getOrders(): List<Order>
+    suspend fun getOrderById(id: Long): Order
+    suspend fun createPayment(orderId: Long): PaymentInfo
+    suspend fun getPaymentStatus(paymentId: String): PaymentStatus
+    suspend fun confirmPayment(paymentId: String): String
 }

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
+import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.presentation.screen.auth.AuthScreen
@@ -32,7 +32,7 @@ class ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = koinScreenModel<ProfileScreenModel>()
+        val screenModel = koinInject<ProfileViewModel>()
         val state by screenModel.state.collectAsState()
         val loggedOut by screenModel.loggedOut.collectAsState()
 

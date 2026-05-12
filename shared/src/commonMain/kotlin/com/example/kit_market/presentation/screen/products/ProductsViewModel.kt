@@ -1,7 +1,7 @@
 package com.example.kit_market.presentation.screen.products
 
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kit_market.domain.model.Product
 import com.example.kit_market.domain.usecase.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,14 +9,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ProductsScreenModel(
+class ProductsViewModel(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getProductsByCategoryUseCase: GetProductsByCategoryUseCase,
     private val searchProductsUseCase: SearchProductsUseCase,
     private val addToCartUseCase: AddToCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
     private val getCartUseCase: GetCartUseCase
-) : ScreenModel {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProductsState())
     val state = _state.asStateFlow()
@@ -27,25 +27,32 @@ class ProductsScreenModel(
     }
 
     private fun loadData() {
-        screenModelScope.launch {
-            val categories = getCategoriesUseCase()
-            val productsByCategory = mutableMapOf<Long, List<Product>>()
-            categories.forEach { category ->
-                val products = getProductsByCategoryUseCase(category.id)
-                productsByCategory[category.id] = products.take(6)
-            }
-            _state.update {
-                it.copy(
-                    categories = categories,
-                    productsByCategory = productsByCategory,
-                    isLoading = false
-                )
+        _state.update { it.copy(isLoading = true, isError = false) }
+        viewModelScope.launch {
+            try {
+                val categories = getCategoriesUseCase()
+                val productsByCategory = mutableMapOf<String, List<Product>>()
+                categories.forEach { category ->
+                    val products = getProductsByCategoryUseCase(category.name)
+                    productsByCategory[category.name] = products.take(6)
+                }
+                val hasProducts = productsByCategory.values.any { it.isNotEmpty() }
+                _state.update {
+                    it.copy(
+                        categories = categories,
+                        productsByCategory = productsByCategory,
+                        isLoading = false,
+                        isError = !hasProducts
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, isError = true) }
             }
         }
     }
 
     private fun observeCart() {
-        screenModelScope.launch {
+        viewModelScope.launch {
             getCartUseCase().collect { cartItems ->
                 val quantities = cartItems.associate { it.product.id to it.quantity }
                 _state.update { it.copy(cartQuantities = quantities) }
@@ -59,6 +66,7 @@ class ProductsScreenModel(
             is ProductsIntent.AddToCart -> addToCart(intent.product)
             is ProductsIntent.Increment -> increment(intent.productId)
             is ProductsIntent.Decrement -> decrement(intent.productId)
+            is ProductsIntent.Retry -> loadData()
         }
     }
 
@@ -68,25 +76,25 @@ class ProductsScreenModel(
             _state.update { it.copy(searchResults = emptyList(), isSearching = false) }
             return
         }
-        screenModelScope.launch {
+        viewModelScope.launch {
             val results = searchProductsUseCase(query)
             _state.update { it.copy(searchResults = results) }
         }
     }
 
     private fun addToCart(product: Product) {
-        screenModelScope.launch { addToCartUseCase(product) }
+        viewModelScope.launch { addToCartUseCase(product) }
     }
 
     private fun increment(productId: Long) {
-        screenModelScope.launch {
+        viewModelScope.launch {
             val currentQty = _state.value.cartQuantities[productId] ?: 0
             updateCartItemQuantityUseCase(productId, currentQty + 1)
         }
     }
 
     private fun decrement(productId: Long) {
-        screenModelScope.launch {
+        viewModelScope.launch {
             val currentQty = _state.value.cartQuantities[productId] ?: 0
             updateCartItemQuantityUseCase(productId, currentQty - 1)
         }

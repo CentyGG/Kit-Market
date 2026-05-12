@@ -6,9 +6,5 @@ data class Product(
     val description: String,
     val imageUrl: String,
     val price: Double,
-    val calories: Int,
-    val protein: Double,
-    val fat: Double,
-    val carbs: Double,
-    val categoryId: Long
+    val category: String = ""
 )

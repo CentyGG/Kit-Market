@@ -2,6 +2,7 @@ package com.example.kit_market.presentation.screen.orderdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kit_market.domain.usecase.CancelOrderUseCase
 import com.example.kit_market.domain.usecase.GetOrderByIdUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +11,8 @@ import kotlinx.coroutines.launch
 
 class OrderDetailViewModel(
     private val orderId: Long,
-    private val getOrderByIdUseCase: GetOrderByIdUseCase
+    private val getOrderByIdUseCase: GetOrderByIdUseCase,
+    private val cancelOrderUseCase: CancelOrderUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OrderDetailState())
@@ -29,6 +31,18 @@ class OrderDetailViewModel(
                 _state.update {
                     it.copy(isLoading = false, error = e.message ?: "Ошибка загрузки заказа")
                 }
+            }
+        }
+    }
+
+    fun cancelOrder() {
+        viewModelScope.launch {
+            _state.update { it.copy(isCancelling = true) }
+            try {
+                cancelOrderUseCase(orderId)
+                loadOrder()
+            } catch (e: Exception) {
+                _state.update { it.copy(isCancelling = false, error = "Не удалось отменить заказ") }
             }
         }
     }

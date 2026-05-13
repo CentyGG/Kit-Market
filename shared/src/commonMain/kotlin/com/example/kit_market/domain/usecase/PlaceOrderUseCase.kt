@@ -5,5 +5,6 @@ import com.example.kit_market.domain.model.Order
 import com.example.kit_market.domain.repository.OrderRepository
 
 class PlaceOrderUseCase(private val repository: OrderRepository) {
-    suspend operator fun invoke(items: List<CartItem>): Order = repository.createOrder(items)
+    suspend operator fun invoke(items: List<CartItem>, paymentType: String = "cash"): Order =
+        repository.createOrder(items, paymentType)
 }

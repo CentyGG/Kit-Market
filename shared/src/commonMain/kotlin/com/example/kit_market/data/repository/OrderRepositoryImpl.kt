@@ -10,9 +10,9 @@ class OrderRepositoryImpl(
     private val apiService: ApiService
 ) : OrderRepository {
 
-    override suspend fun createOrder(items: List<CartItem>): Order {
+    override suspend fun createOrder(items: List<CartItem>, paymentType: String): Order {
         val request = items.map { OrderItemRequest(it.product.id, it.quantity) }
-        return apiService.createOrder(request).toDomain()
+        return apiService.createOrder(request, paymentType).toDomain()
     }
 
     override suspend fun getOrders(): List<Order> {
@@ -21,6 +21,10 @@ class OrderRepositoryImpl(
 
     override suspend fun getOrderById(id: Long): Order {
         return apiService.getOrderById(id).toDomain()
+    }
+
+    override suspend fun cancelOrder(orderId: Long): Boolean {
+        return apiService.cancelOrder(orderId)
     }
 
     override suspend fun createPayment(orderId: Long): PaymentInfo {
@@ -57,6 +61,7 @@ class OrderRepositoryImpl(
         totalPrice = total.toDouble() / 100.0,
         date = orderDate,
         status = OrderStatus.fromString(status),
+        paymentType = paymentType,
         hasReceipt = hasReceipt
     )
 }

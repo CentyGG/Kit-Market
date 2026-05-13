@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.kit_market.domain.repository.CartRepository
 import com.example.kit_market.domain.repository.OrderRepository
 import com.example.kit_market.presentation.screen.orderdetail.OrderDetailScreen
 import com.example.kit_market.presentation.theme.*
@@ -24,30 +25,33 @@ data class PaymentWebViewScreen(
     val orderId: Long,
     val paymentId: String
 ) : Screen {
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val orderRepository = koinInject<OrderRepository>()
+        val cartRepository = koinInject<CartRepository>()
         var paymentResult by remember { mutableStateOf<PaymentResult?>(null) }
         var isConfirming by remember { mutableStateOf(false) }
-
         LaunchedEffect(paymentResult) {
             when (paymentResult) {
                 PaymentResult.SUCCESS -> {
                     isConfirming = true
                     try {
-                        // Даём Tinkoff пару секунд на обработку
                         delay(2000)
                         orderRepository.confirmPayment(paymentId)
-                    } catch (_: Exception) {
-                        // Даже если confirm упал — переходим к заказу
-                    }
+                    } catch (_: Exception) { }
+                    try {
+                        cartRepository.clearCart()
+                    } catch (_: Exception) { }
                     isConfirming = false
                     navigator.replace(OrderDetailScreen(orderId))
                 }
-                PaymentResult.FAIL -> { /* stay, show error */ }
+                PaymentResult.FAIL -> {
+                    try {
+                        orderRepository.cancelOrder(orderId)
+                    } catch (_: Exception) { }
+                }
                 null -> { /* loading */ }
             }
         }

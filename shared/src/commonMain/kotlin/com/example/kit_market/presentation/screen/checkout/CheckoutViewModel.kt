@@ -50,11 +50,16 @@ class CheckoutViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val order = placeOrderUseCase(currentState.items)
-                clearCartUseCase()
+                val paymentType = when (currentState.paymentMethod) {
+                    PaymentMethod.CASH -> "cash"
+                    PaymentMethod.CARD -> "card"
+                }
+                val order = placeOrderUseCase(currentState.items, paymentType)
 
                 when (currentState.paymentMethod) {
                     PaymentMethod.CARD -> {
+                        // При оплате картой корзину НЕ очищаем —
+                        // она очистится после успешной оплаты в PaymentWebViewScreen
                         val payment = createPaymentUseCase(order.id)
                         _state.update {
                             it.copy(
@@ -66,6 +71,7 @@ class CheckoutViewModel(
                         }
                     }
                     PaymentMethod.CASH -> {
+                        clearCartUseCase()
                         _state.update {
                             it.copy(isLoading = false, orderCreatedId = order.id)
                         }

@@ -21,6 +21,6 @@ val presentationModule = module {
     factory { ProfileViewModel(get(), get(), get()) }
     factory { OrdersViewModel(get()) }
     factory { CheckoutViewModel(get(), get(), get(), get()) }
-    factory { params -> OrderDetailViewModel(params.get(), get()) }
+    factory { params -> OrderDetailViewModel(params.get(), get(), get()) }
     factory { params -> ReceiptViewModel(params.get(), get(), get()) }
 }

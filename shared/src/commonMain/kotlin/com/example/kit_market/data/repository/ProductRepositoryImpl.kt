@@ -63,6 +63,7 @@ class ProductRepositoryImpl(
         description = description,
         imageUrl = imageUrl,
         price = price.toDouble() / 100.0,
-        category = category
+        category = category,
+        subcategory = subcategory
     )
 }

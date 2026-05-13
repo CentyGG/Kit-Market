@@ -25,9 +25,9 @@ class ApiService(private val client: HttpClient) {
     }
 
 
-    suspend fun createOrder(items: List<OrderItemRequest>): OrderResponse {
+    suspend fun createOrder(items: List<OrderItemRequest>, paymentType: String = "cash"): OrderResponse {
         return client.post("/orders") {
-            setBody(CreateOrderRequest(items))
+            setBody(CreateOrderRequest(items, paymentType))
         }.body()
     }
 
@@ -37,6 +37,11 @@ class ApiService(private val client: HttpClient) {
 
     suspend fun getOrderById(id: Long): OrderResponse {
         return client.get("/orders/$id").body()
+    }
+
+    suspend fun cancelOrder(orderId: Long): Boolean {
+        val response = client.post("/orders/$orderId/cancel")
+        return response.status.value in 200..299
     }
 
     suspend fun createPayment(orderId: Long): PaymentResponse {

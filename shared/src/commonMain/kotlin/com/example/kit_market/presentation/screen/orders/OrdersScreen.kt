@@ -139,8 +139,10 @@ private fun StatusChip(status: OrderStatus) {
     val (backgroundColor, textColor) = when (status) {
         OrderStatus.CREATED -> KitGrayLight to KitTextSecondary
         OrderStatus.PAID -> Color(0xFFE3F2FD) to Color(0xFF1976D2)
+        OrderStatus.ASSEMBLING -> Color(0xFFFFF3E0) to Color(0xFFE65100)
         OrderStatus.READY -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
-        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
+        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF1B5E20)
+        OrderStatus.CANCELLED -> Color(0xFFFFEBEE) to Color(0xFFD32F2F)
     }
     Surface(
         shape = RoundedCornerShape(16.dp),

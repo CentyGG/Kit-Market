@@ -8,6 +8,7 @@ data class ProductResponse(
     val name: String,
     val description: String,
     val category: String = "",
+    val subcategory: String = "",
     val price: Long,
     val isActive: Boolean,
     val imageUrl: String = ""

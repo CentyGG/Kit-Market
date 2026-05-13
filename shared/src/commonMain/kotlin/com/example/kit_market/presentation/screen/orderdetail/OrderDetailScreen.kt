@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -118,6 +119,26 @@ data class OrderDetailScreen(val orderId: Long) : Screen {
                             }
                         }
 
+                        // Ready banner
+                        if (order.status == OrderStatus.READY) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                                ) {
+                                    Text(
+                                        text = "Ваш заказ готов к выдаче",
+                                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF388E3C),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+
                         // Items header
                         item {
                             Text(
@@ -170,6 +191,7 @@ data class OrderDetailScreen(val orderId: Long) : Screen {
                                 }
                             }
                         }
+
                     }
                 }
             }
@@ -182,8 +204,10 @@ private fun StatusChip(status: OrderStatus) {
     val (backgroundColor, textColor) = when (status) {
         OrderStatus.CREATED -> KitGrayLight to KitTextSecondary
         OrderStatus.PAID -> Color(0xFFE3F2FD) to Color(0xFF1976D2)
+        OrderStatus.ASSEMBLING -> Color(0xFFFFF3E0) to Color(0xFFE65100)
         OrderStatus.READY -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
-        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF388E3C)
+        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF1B5E20)
+        OrderStatus.CANCELLED -> Color(0xFFFFEBEE) to Color(0xFFD32F2F)
     }
     Surface(
         shape = RoundedCornerShape(16.dp),

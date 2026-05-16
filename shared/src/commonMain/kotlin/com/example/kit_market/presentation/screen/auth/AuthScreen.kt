@@ -1,5 +1,6 @@
 package com.example.kit_market.presentation.screen.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,10 +20,15 @@ import cafe.adriel.voyager.core.screen.Screen
 import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.kit_market.data.remote.TokenStorage
 import com.example.kit_market.presentation.navigation.MainScreen
+import com.example.kit_market.presentation.navigation.WorkerMainScreen
 import com.example.kit_market.presentation.theme.KitBlue
 import com.example.kit_market.presentation.theme.KitTextSecondary
 import com.example.kit_market.presentation.theme.KitWhite
+import kit_market.shared.generated.resources.Res
+import kit_market.shared.generated.resources.whale
+import org.jetbrains.compose.resources.painterResource
 
 class AuthScreen : Screen {
 
@@ -35,7 +41,11 @@ class AuthScreen : Screen {
 
         LaunchedEffect(navigateToMain) {
             if (navigateToMain) {
-                navigator.replaceAll(MainScreen())
+                if (TokenStorage.role == "worker") {
+                    navigator.replaceAll(WorkerMainScreen())
+                } else {
+                    navigator.replaceAll(MainScreen())
+                }
             }
         }
 
@@ -46,9 +56,10 @@ class AuthScreen : Screen {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "\uD83D\uDC33",
-                fontSize = 64.sp
+            Image(
+                painter = painterResource(Res.drawable.whale),
+                contentDescription = "Кит",
+                modifier = Modifier.size(96.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(

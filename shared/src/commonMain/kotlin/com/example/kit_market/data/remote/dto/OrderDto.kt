@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class OrderItemRequest(val productId: Long, val quantity: Int)
 
 @Serializable
-data class CreateOrderRequest(val items: List<OrderItemRequest>, val paymentType: String = "cash")
+data class CreateOrderRequest(val items: List<OrderItemRequest>, val paymentType: String = "cash", val pickupTime: String? = null)
 
 @Serializable
 data class OrderResponse(
@@ -17,8 +17,12 @@ data class OrderResponse(
     val total: Long,
     val paymentType: String = "cash",
     val items: List<OrderItemResponse>,
-    val hasReceipt: Boolean = false
+    val hasReceipt: Boolean = false,
+    val pickupTime: String? = null
 )
+
+@Serializable
+data class UpdateStatusRequest(val status: String)
 
 @Serializable
 data class OrderItemResponse(

@@ -24,4 +24,7 @@ val domainModule = module {
     factory { CreatePaymentUseCase(get()) }
     factory { GetPaymentStatusUseCase(get()) }
     factory { CancelOrderUseCase(get()) }
+    factory { GetWorkerOrdersUseCase(get()) }
+    factory { UpdateOrderStatusUseCase(get()) }
+    factory { WorkerCancelOrderUseCase(get()) }
 }

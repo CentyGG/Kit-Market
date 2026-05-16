@@ -9,8 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.domain.model.Order
 import com.example.kit_market.domain.model.OrderStatus
+import com.example.kit_market.presentation.common.formatPrice
 import com.example.kit_market.presentation.screen.orderdetail.OrderDetailScreen
 import com.example.kit_market.presentation.theme.*
 
@@ -35,6 +38,11 @@ class OrdersScreen : Screen {
         val screenModel = koinInject<OrdersViewModel>()
         val state by screenModel.state.collectAsState()
 
+        // Обновляем список при каждом возврате на экран
+        LaunchedEffect(Unit) {
+            screenModel.refresh()
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -42,6 +50,11 @@ class OrdersScreen : Screen {
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { screenModel.refresh() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Обновить", tint = KitBlue)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -57,6 +70,26 @@ class OrdersScreen : Screen {
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = KitBlue)
+                }
+            } else if (state.error != null) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = state.error!!,
+                        fontSize = 16.sp,
+                        color = KitTextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { screenModel.retry() },
+                        colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Повторить", color = KitWhite)
+                    }
                 }
             } else if (state.orders.isEmpty()) {
                 Box(
@@ -124,7 +157,7 @@ private fun OrderCard(order: Order, onClick: () -> Unit) {
                     color = KitTextSecondary
                 )
                 Text(
-                    text = "${"%.2f".format(order.totalPrice)} \u20BD",
+                    text = "${order.totalPrice.formatPrice()} \u20BD",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = KitTextPrimary

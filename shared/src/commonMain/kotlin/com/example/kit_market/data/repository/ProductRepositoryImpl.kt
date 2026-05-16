@@ -46,15 +46,15 @@ class ProductRepositoryImpl(
         return getAllProducts().find { it.id == id }
     }
 
+    override fun clearCache() {
+        cachedProducts = null
+    }
+
     private suspend fun getAllProducts(): List<Product> {
         cachedProducts?.let { return it }
-        return try {
-            val products = apiService.getProducts().map { it.toDomain() }
-            cachedProducts = products
-            products
-        } catch (e: Exception) {
-            emptyList()
-        }
+        val products = apiService.getProducts().map { it.toDomain() }
+        cachedProducts = products
+        return products
     }
 
     private fun ProductResponse.toDomain(): Product = Product(

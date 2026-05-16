@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.kit_market.presentation.common.formatPrice
 import com.example.kit_market.presentation.theme.*
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -61,8 +62,20 @@ data class ReceiptScreen(val orderId: Long) : Screen {
                     }
                 }
                 state.error != null -> {
-                    Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                        Text(state.error!!, color = MaterialTheme.colorScheme.error, fontSize = 16.sp)
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(state.error!!, color = KitTextSecondary, fontSize = 16.sp)
+                        Spacer(Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.retry() },
+                            colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Повторить", color = KitWhite)
+                        }
                     }
                 }
                 state.status == "wait" -> {
@@ -136,13 +149,13 @@ data class ReceiptScreen(val orderId: Long) : Screen {
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "${item.quantity} x ${"%.2f".format(item.price)}",
+                                            text = "${item.quantity} x ${item.price.formatPrice()}",
                                             fontFamily = mono,
                                             fontSize = 12.sp,
                                             color = KitTextSecondary
                                         )
                                         Text(
-                                            text = "${"%.2f".format(item.price * item.quantity)}",
+                                            text = "${(item.price * item.quantity).formatPrice()}",
                                             fontFamily = mono,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium,
@@ -167,7 +180,7 @@ data class ReceiptScreen(val orderId: Long) : Screen {
                                         fontSize = 16.sp
                                     )
                                     Text(
-                                        text = "${"%.2f".format(state.total)} \u20BD",
+                                        text = "${state.total.formatPrice()} \u20BD",
                                         fontFamily = mono,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp

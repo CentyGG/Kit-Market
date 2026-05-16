@@ -29,9 +29,20 @@ class ProductDetailViewModel(
 
     private fun loadProduct() {
         viewModelScope.launch {
-            val product = getProductByIdUseCase(productId)
-            _state.update { it.copy(product = product, isLoading = false) }
+            _state.update { it.copy(isLoading = true, error = null) }
+            try {
+                val product = getProductByIdUseCase(productId)
+                _state.update { it.copy(product = product, isLoading = false) }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(isLoading = false, error = "Не удалось загрузить товар. Проверьте интернет-соединение.")
+                }
+            }
         }
+    }
+
+    fun retry() {
+        loadProduct()
     }
 
     private fun observeCart() {

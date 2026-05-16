@@ -5,5 +5,6 @@ import com.example.kit_market.domain.model.Product
 data class ProductDetailState(
     val product: Product? = null,
     val quantityInCart: Int = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val error: String? = null
 )

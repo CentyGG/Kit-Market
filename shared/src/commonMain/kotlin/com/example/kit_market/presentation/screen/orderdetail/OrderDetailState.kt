@@ -6,5 +6,6 @@ data class OrderDetailState(
     val order: Order? = null,
     val isLoading: Boolean = true,
     val isCancelling: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val paymentTimeLeftSeconds: Int? = null
 )

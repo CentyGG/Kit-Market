@@ -10,9 +10,9 @@ class OrderRepositoryImpl(
     private val apiService: ApiService
 ) : OrderRepository {
 
-    override suspend fun createOrder(items: List<CartItem>, paymentType: String): Order {
+    override suspend fun createOrder(items: List<CartItem>, paymentType: String, pickupTime: String?): Order {
         val request = items.map { OrderItemRequest(it.product.id, it.quantity) }
-        return apiService.createOrder(request, paymentType).toDomain()
+        return apiService.createOrder(request, paymentType, pickupTime).toDomain()
     }
 
     override suspend fun getOrders(): List<Order> {
@@ -46,6 +46,18 @@ class OrderRepositoryImpl(
         return response.status
     }
 
+    override suspend fun getWorkerOrders(status: String?): List<Order> {
+        return apiService.getWorkerOrders(status).map { it.toDomain() }
+    }
+
+    override suspend fun updateOrderStatus(orderId: Long, status: String): Boolean {
+        return apiService.updateOrderStatus(orderId, status)
+    }
+
+    override suspend fun workerCancelOrder(orderId: Long): Boolean {
+        return apiService.workerCancelOrder(orderId)
+    }
+
     private fun OrderResponse.toDomain(): Order = Order(
         id = id,
         userId = userId,
@@ -62,6 +74,7 @@ class OrderRepositoryImpl(
         date = orderDate,
         status = OrderStatus.fromString(status),
         paymentType = paymentType,
-        hasReceipt = hasReceipt
+        hasReceipt = hasReceipt,
+        pickupTime = pickupTime
     )
 }

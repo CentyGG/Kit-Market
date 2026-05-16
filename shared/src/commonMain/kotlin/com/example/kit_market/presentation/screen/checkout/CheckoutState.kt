@@ -15,5 +15,10 @@ data class CheckoutState(
     val error: String? = null,
     val orderCreatedId: Long? = null,
     val paymentUrl: String? = null,
-    val paymentId: String? = null
+    val paymentId: String? = null,
+    val orderPaid: Boolean = false,
+    val availableDates: List<String> = emptyList(),   // "2026-05-16", "2026-05-17", ...
+    val selectedDate: String? = null,
+    val availableTimeSlots: List<String> = emptyList(), // "09:00", "09:30", ...
+    val selectedTime: String? = null
 )

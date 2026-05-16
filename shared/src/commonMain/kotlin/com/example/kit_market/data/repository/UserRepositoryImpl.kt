@@ -27,8 +27,10 @@ class UserRepositoryImpl(
                 id = response.id,
                 phone = response.phone,
                 firstName = nameParts.getOrElse(0) { "" },
-                lastName = nameParts.getOrElse(1) { "" }
+                lastName = nameParts.getOrElse(1) { "" },
+                role = response.role
             )
+            TokenStorage.role = response.role
             _user.value = user
             user
         } catch (e: Exception) {
@@ -53,9 +55,11 @@ class UserRepositoryImpl(
                 id = userResponse.id,
                 phone = userResponse.phone,
                 firstName = nameParts.getOrElse(0) { "" },
-                lastName = nameParts.getOrElse(1) { "" }
+                lastName = nameParts.getOrElse(1) { "" },
+                role = userResponse.role
             )
             TokenStorage.userId = userResponse.id
+            TokenStorage.role = userResponse.role
             pendingPhone = null
             true
         } catch (e: Exception) {
@@ -72,7 +76,8 @@ class UserRepositoryImpl(
                 id = response.id,
                 phone = response.phone,
                 firstName = nameParts.getOrElse(0) { "" },
-                lastName = nameParts.getOrElse(1) { "" }
+                lastName = nameParts.getOrElse(1) { "" },
+                role = response.role
             )
         } catch (e: Exception) {
             _user.value = user
@@ -82,6 +87,7 @@ class UserRepositoryImpl(
     override suspend fun logout() {
         TokenStorage.token = null
         TokenStorage.userId = null
+        TokenStorage.role = null
         _user.value = null
     }
 }

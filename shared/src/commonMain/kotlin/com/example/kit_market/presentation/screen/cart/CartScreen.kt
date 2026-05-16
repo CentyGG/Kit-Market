@@ -26,6 +26,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import com.example.kit_market.domain.model.CartItem
 import com.example.kit_market.presentation.common.QuantityCounter
+import com.example.kit_market.presentation.common.formatPrice
 import com.example.kit_market.presentation.screen.checkout.CheckoutScreen
 import com.example.kit_market.presentation.screen.productdetail.ProductDetailScreen
 import com.example.kit_market.presentation.theme.*
@@ -103,7 +104,7 @@ class CartScreen : Screen {
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = "${"%.2f".format(state.totalPrice)} \u20BD",
+                                text = "${state.totalPrice.formatPrice()} \u20BD",
                                 color = KitWhite,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
@@ -164,7 +165,7 @@ private fun CartItemCard(
                 )
             }
             Text(
-                text = "${"%.2f".format(item.product.price * item.quantity)} \u20BD",
+                text = "${(item.product.price * item.quantity).formatPrice()} \u20BD",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = KitTextPrimary

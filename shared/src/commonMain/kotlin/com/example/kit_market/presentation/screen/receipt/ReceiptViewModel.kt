@@ -45,9 +45,13 @@ class ReceiptViewModel(
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(isLoading = false, error = e.message ?: "Ошибка загрузки чека")
+                    it.copy(isLoading = false, error = "Не удалось загрузить чек. Проверьте интернет-соединение.")
                 }
             }
         }
+    }
+
+    fun retry() {
+        loadReceipt()
     }
 }

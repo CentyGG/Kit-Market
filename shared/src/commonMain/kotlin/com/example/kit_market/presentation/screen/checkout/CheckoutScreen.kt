@@ -2,6 +2,7 @@ package com.example.kit_market.presentation.screen.checkout
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -23,7 +25,9 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.kit_market.domain.model.CartItem
 import com.example.kit_market.presentation.screen.orderdetail.OrderDetailScreen
 import com.example.kit_market.presentation.screen.payment.PaymentWebViewScreen
+import com.example.kit_market.presentation.common.formatPrice
 import com.example.kit_market.presentation.theme.*
+import kotlinx.datetime.*
 import org.koin.compose.koinInject
 
 class CheckoutScreen : Screen {
@@ -35,9 +39,12 @@ class CheckoutScreen : Screen {
         val viewModel = koinInject<CheckoutViewModel>()
         val state by viewModel.state.collectAsState()
 
-        LaunchedEffect(state.orderCreatedId, state.paymentUrl) {
+        LaunchedEffect(state.orderCreatedId, state.paymentUrl, state.orderPaid) {
             val orderId = state.orderCreatedId ?: return@LaunchedEffect
-            if (state.paymentMethod == PaymentMethod.CARD && state.paymentUrl != null && state.paymentId != null) {
+            if (state.orderPaid) {
+                // Заказ уже оплачен — переходим к деталям, не создаём новый платёж
+                navigator.replace(OrderDetailScreen(orderId))
+            } else if (state.paymentMethod == PaymentMethod.CARD && state.paymentUrl != null && state.paymentId != null) {
                 navigator.replace(PaymentWebViewScreen(state.paymentUrl!!, orderId, state.paymentId!!))
             } else if (state.paymentMethod == PaymentMethod.CASH) {
                 navigator.replace(OrderDetailScreen(orderId))
@@ -100,7 +107,7 @@ class CheckoutScreen : Screen {
                                 color = KitTextPrimary
                             )
                             Text(
-                                text = "${"%.2f".format(state.totalPrice)} \u20BD",
+                                text = "${state.totalPrice.formatPrice()} \u20BD",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = KitBlue
@@ -128,6 +135,78 @@ class CheckoutScreen : Screen {
                             selected = state.paymentMethod == PaymentMethod.CARD,
                             onClick = { viewModel.onIntent(CheckoutIntent.SelectPaymentMethod(PaymentMethod.CARD)) }
                         )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(
+                            text = "Время самовывоза",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KitTextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Date chips
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.availableDates) { date ->
+                                val isSelected = date == state.selectedDate
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.onIntent(CheckoutIntent.SelectPickupDate(date)) },
+                                    label = {
+                                        Text(
+                                            text = formatDateLabel(date),
+                                            fontSize = 14.sp
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = KitBlue,
+                                        selectedLabelColor = KitWhite
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        if (state.availableTimeSlots.isEmpty()) {
+                            Text(
+                                text = "Нет доступных слотов на этот день",
+                                fontSize = 14.sp,
+                                color = KitTextSecondary
+                            )
+                        } else {
+                            // Time slot grid - FlowRow-like using rows
+                            val chunked = state.availableTimeSlots.chunked(4)
+                            chunked.forEach { row ->
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    row.forEach { time ->
+                                        val isSelected = time == state.selectedTime
+                                        FilterChip(
+                                            selected = isSelected,
+                                            onClick = { viewModel.onIntent(CheckoutIntent.SelectPickupTime(time)) },
+                                            label = {
+                                                Text(
+                                                    text = time,
+                                                    fontSize = 13.sp,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = KitBlue,
+                                                selectedLabelColor = KitWhite
+                                            )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+                        }
                     }
 
                     if (state.error != null) {
@@ -138,6 +217,17 @@ class CheckoutScreen : Screen {
                                 color = MaterialTheme.colorScheme.error,
                                 fontSize = 14.sp
                             )
+                            // Если заказ создан, но платёж не прошёл — кнопка повтора
+                            if (state.orderCreatedId != null && state.paymentUrl == null
+                                && state.paymentMethod == PaymentMethod.CARD) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedButton(
+                                    onClick = { viewModel.onIntent(CheckoutIntent.RetryPayment) },
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Повторить оплату", color = KitBlue)
+                                }
+                            }
                         }
                     }
                 }
@@ -154,7 +244,7 @@ class CheckoutScreen : Screen {
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
-                        enabled = !state.isLoading && state.items.isNotEmpty()
+                        enabled = !state.isLoading && state.items.isNotEmpty() && state.selectedTime != null
                     ) {
                         if (state.isLoading) {
                             CircularProgressIndicator(
@@ -199,18 +289,37 @@ private fun CheckoutItemRow(item: CartItem) {
                     color = KitTextPrimary
                 )
                 Text(
-                    text = "${item.quantity} шт. x ${"%.2f".format(item.product.price)} \u20BD",
+                    text = "${item.quantity} шт. x ${item.product.price.formatPrice()} \u20BD",
                     fontSize = 12.sp,
                     color = KitTextSecondary
                 )
             }
             Text(
-                text = "${"%.2f".format(item.product.price * item.quantity)} \u20BD",
+                text = "${(item.product.price * item.quantity).formatPrice()} \u20BD",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = KitTextPrimary
             )
         }
+    }
+}
+
+private fun formatDateLabel(dateStr: String): String {
+    return try {
+        val date = kotlinx.datetime.LocalDate.parse(dateStr)
+        val now = kotlinx.datetime.Clock.System.now()
+            .toLocalDateTime(kotlinx.datetime.TimeZone.of("Asia/Vladivostok")).date
+        val tomorrow = now.plus(1, kotlinx.datetime.DateTimeUnit.DAY)
+        when (date) {
+            now -> "Сегодня"
+            tomorrow -> "Завтра"
+            else -> {
+                val months = listOf("", "янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
+                "${date.dayOfMonth} ${months[date.monthNumber]}"
+            }
+        }
+    } catch (_: Exception) {
+        dateStr
     }
 }
 

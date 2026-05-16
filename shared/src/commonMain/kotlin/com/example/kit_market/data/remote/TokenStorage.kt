@@ -11,6 +11,10 @@ object TokenStorage {
         get() = _tokenProvider?.getUserId()
         set(value) { _tokenProvider?.setUserId(value) }
 
+    var role: String?
+        get() = _tokenProvider?.getRole()
+        set(value) { _tokenProvider?.setRole(value) }
+
     fun init(provider: TokenProvider) {
         _tokenProvider = provider
     }
@@ -21,4 +25,6 @@ interface TokenProvider {
     fun setToken(token: String?)
     fun getUserId(): Long?
     fun setUserId(userId: Long?)
+    fun getRole(): String?
+    fun setRole(role: String?)
 }

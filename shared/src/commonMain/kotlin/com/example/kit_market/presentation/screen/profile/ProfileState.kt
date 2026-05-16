@@ -6,5 +6,7 @@ data class ProfileState(
     val user: User? = null,
     val isEditing: Boolean = false,
     val editFirstName: String = "",
-    val editLastName: String = ""
+    val editLastName: String = "",
+    val isLoadingProfile: Boolean = false,
+    val error: String? = null
 )

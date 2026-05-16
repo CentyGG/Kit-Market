@@ -60,6 +60,26 @@ data class ProductDetailScreen(val productId: Long) : Screen {
                 ) {
                     CircularProgressIndicator(color = KitBlue)
                 }
+            } else if (state.error != null) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = state.error!!,
+                        fontSize = 16.sp,
+                        color = KitTextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { screenModel.retry() },
+                        colors = ButtonDefaults.buttonColors(containerColor = KitBlue),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Повторить", color = KitWhite)
+                    }
+                }
             } else {
                 val product = state.product ?: return@Scaffold
                 Column(

@@ -61,10 +61,12 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.androidx.core)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

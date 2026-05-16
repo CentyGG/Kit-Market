@@ -8,7 +8,8 @@ data class Order(
     val date: String,
     val status: OrderStatus,
     val paymentType: String = "cash",
-    val hasReceipt: Boolean = false
+    val hasReceipt: Boolean = false,
+    val pickupTime: String? = null
 )
 
 data class OrderItem(

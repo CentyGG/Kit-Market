@@ -23,7 +23,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import org.koin.compose.koinInject
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.kit_market.notification.NotificationManager
 import com.example.kit_market.presentation.screen.auth.AuthScreen
+import com.example.kit_market.presentation.screen.help.HelpScreen
 import com.example.kit_market.presentation.screen.orders.OrdersScreen
 import com.example.kit_market.presentation.theme.*
 
@@ -52,6 +54,29 @@ class ProfileScreen : Screen {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Ошибка загрузки профиля (нет данных и нет интернета)
+            if (state.user == null && state.error != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { screenModel.retryLoadProfile() },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = KitBlue)
+                    ) {
+                        Text("Повторить", color = KitWhite)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+
             // User name section
             if (state.isEditing) {
                 OutlinedTextField(
@@ -72,6 +97,14 @@ class ProfileScreen : Screen {
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                if (state.error != null) {
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
                 Button(
                     onClick = { screenModel.onIntent(ProfileIntent.SaveName) },
                     modifier = Modifier.fillMaxWidth().height(44.dp),
@@ -128,15 +161,50 @@ class ProfileScreen : Screen {
             ProfileMenuButton(
                 icon = Icons.Default.Info,
                 text = "Помощь",
-                onClick = { /* TODO */ }
+                onClick = { navigator.push(HelpScreen()) }
             )
             Spacer(modifier = Modifier.height(12.dp))
-            ProfileMenuButton(
-                icon = Icons.Default.Notifications,
-                text = "Уведомления",
-                onClick = { },
-                enabled = false
-            )
+
+            // Notification toggle
+            val notificationsEnabled by NotificationManager.enabled.collectAsState()
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = KitWhite),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = KitTextPrimary
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Уведомления",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = KitTextPrimary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { NotificationManager.setEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = KitWhite,
+                            checkedTrackColor = KitBlue,
+                            uncheckedThumbColor = KitWhite,
+                            uncheckedTrackColor = KitGray
+                        )
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

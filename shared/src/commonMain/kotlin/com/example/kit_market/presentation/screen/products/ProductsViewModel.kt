@@ -3,6 +3,7 @@ package com.example.kit_market.presentation.screen.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kit_market.domain.model.Product
+import com.example.kit_market.domain.repository.ProductRepository
 import com.example.kit_market.domain.usecase.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ class ProductsViewModel(
     private val searchProductsUseCase: SearchProductsUseCase,
     private val addToCartUseCase: AddToCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
-    private val getCartUseCase: GetCartUseCase
+    private val getCartUseCase: GetCartUseCase,
+    private val productRepository: ProductRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProductsState())
@@ -66,7 +68,10 @@ class ProductsViewModel(
             is ProductsIntent.AddToCart -> addToCart(intent.product)
             is ProductsIntent.Increment -> increment(intent.productId)
             is ProductsIntent.Decrement -> decrement(intent.productId)
-            is ProductsIntent.Retry -> loadData()
+            is ProductsIntent.Retry -> {
+                productRepository.clearCache()
+                loadData()
+            }
         }
     }
 

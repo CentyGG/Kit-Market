@@ -21,6 +21,7 @@ class OrdersViewModel(
 
     private fun loadOrders() {
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
             try {
                 val orders = getOrdersUseCase()
                 _state.update {
@@ -28,7 +29,29 @@ class OrdersViewModel(
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(isLoading = false, error = e.message)
+                    it.copy(isLoading = false, error = "Не удалось загрузить заказы. Проверьте интернет-соединение.")
+                }
+            }
+        }
+    }
+
+    fun retry() {
+        loadOrders()
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                val orders = getOrdersUseCase()
+                _state.update {
+                    it.copy(orders = orders, error = null)
+                }
+            } catch (_: Exception) {
+                // При фоновом обновлении не показываем ошибку, если данные уже есть
+                if (_state.value.orders.isEmpty()) {
+                    _state.update {
+                        it.copy(error = "Не удалось загрузить заказы. Проверьте интернет-соединение.")
+                    }
                 }
             }
         }

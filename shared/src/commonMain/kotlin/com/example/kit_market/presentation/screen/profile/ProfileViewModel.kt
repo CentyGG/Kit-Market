@@ -2,6 +2,7 @@ package com.example.kit_market.presentation.screen.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kit_market.domain.repository.UserRepository
 import com.example.kit_market.domain.usecase.GetUserUseCase
 import com.example.kit_market.domain.usecase.LogoutUseCase
 import com.example.kit_market.domain.usecase.UpdateUserUseCase
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val getUserUseCase: GetUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -24,6 +26,7 @@ class ProfileViewModel(
 
     init {
         observeUser()
+        loadProfile()
     }
 
     private fun observeUser() {
@@ -32,12 +35,33 @@ class ProfileViewModel(
                 _state.update {
                     it.copy(
                         user = user,
+                        isLoadingProfile = false,
                         editFirstName = user?.firstName ?: "",
                         editLastName = user?.lastName ?: ""
                     )
                 }
             }
         }
+    }
+
+    private fun loadProfile() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingProfile = true, error = null) }
+            try {
+                userRepository.getCurrentUser()
+            } catch (_: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoadingProfile = false,
+                        error = if (it.user == null) "Не удалось загрузить профиль. Проверьте интернет-соединение." else null
+                    )
+                }
+            }
+        }
+    }
+
+    fun retryLoadProfile() {
+        loadProfile()
     }
 
     fun onIntent(intent: ProfileIntent) {
@@ -65,8 +89,13 @@ class ProfileViewModel(
                     lastName = _state.value.editLastName
                 )
                 viewModelScope.launch {
-                    updateUserUseCase(updated)
-                    _state.update { it.copy(isEditing = false) }
+                    _state.update { it.copy(error = null) }
+                    try {
+                        updateUserUseCase(updated)
+                        _state.update { it.copy(isEditing = false) }
+                    } catch (e: Exception) {
+                        _state.update { it.copy(error = "Не удалось сохранить. Проверьте интернет-соединение.") }
+                    }
                 }
             }
             ProfileIntent.Logout -> {

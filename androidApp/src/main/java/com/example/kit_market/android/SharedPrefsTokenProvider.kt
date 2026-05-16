@@ -22,4 +22,10 @@ class SharedPrefsTokenProvider(context: Context) : TokenProvider {
             if (userId != null) putLong("user_id", userId) else remove("user_id")
         }.apply()
     }
+    override fun getRole(): String? = prefs.getString("role", null)
+    override fun setRole(role: String?) {
+        prefs.edit().apply {
+            if (role != null) putString("role", role) else remove("role")
+        }.apply()
+    }
 }

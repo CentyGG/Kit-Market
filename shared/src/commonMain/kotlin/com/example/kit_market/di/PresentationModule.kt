@@ -10,17 +10,19 @@ import com.example.kit_market.presentation.screen.products.ProductsViewModel
 import com.example.kit_market.presentation.screen.profile.ProfileViewModel
 import com.example.kit_market.presentation.screen.receipt.ReceiptViewModel
 import com.example.kit_market.presentation.screen.splash.SplashViewModel
+import com.example.kit_market.presentation.screen.worker.WorkerOrdersViewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
     factory { SplashViewModel(get<com.example.kit_market.domain.repository.UserRepository>()) }
     factory { AuthViewModel(get(), get()) }
-    factory { ProductsViewModel(get(), get(), get(), get(), get(), get()) }
+    factory { ProductsViewModel(get(), get(), get(), get(), get(), get(), get()) }
     factory { params -> ProductDetailViewModel(params.get(), get(), get(), get(), get()) }
     factory { CartViewModel(get(), get(), get()) }
-    factory { ProfileViewModel(get(), get(), get()) }
+    factory { ProfileViewModel(get(), get(), get(), get()) }
     factory { OrdersViewModel(get()) }
-    factory { CheckoutViewModel(get(), get(), get(), get()) }
+    factory { CheckoutViewModel(get(), get(), get(), get(), get()) }
     factory { params -> OrderDetailViewModel(params.get(), get(), get()) }
     factory { params -> ReceiptViewModel(params.get(), get(), get()) }
+    factory { WorkerOrdersViewModel(get(), get(), get()) }
 }

@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 
 object ApiClient {
 
-    const val BASE_URL = "http://172.18.0.1:8080"
+    const val BASE_URL = "http://159.194.229.53:8080"
 
     val httpClient = HttpClient {
         install(ContentNegotiation) {
@@ -18,6 +18,11 @@ object ApiClient {
                 ignoreUnknownKeys = true
                 isLenient = true
             })
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = 15_000
+            requestTimeoutMillis = 30_000
+            socketTimeoutMillis = 15_000
         }
         defaultRequest {
             url(BASE_URL)

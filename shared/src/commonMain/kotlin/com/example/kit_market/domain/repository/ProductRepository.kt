@@ -8,4 +8,5 @@ interface ProductRepository {
     suspend fun getProductsByCategory(categoryName: String): List<Product>
     suspend fun searchProducts(query: String): List<Product>
     suspend fun getProductById(id: Long): Product?
+    fun clearCache()
 }
